@@ -1,0 +1,15 @@
+{
+  "name": "OCTOTROG",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:neckro/OCTOTROG.JS.git"
+  },
+  "main": "octotrog.js",
+  "dependencies": {
+    "irc": "~0.3.6",
+    "extend": "~1.2.1",
+    "sprintf": "~0.1.2"
+  },
+  "devDependencies": {}
+}
