@@ -33,46 +33,50 @@ var relaybot = {
     this.sources = this.sources || {};
     extend(true, this.sources, sources);
     this.command_map = {};
-    this.relays = {};
     Object.keys(this.sources).forEach(function(s) {
       var source = this.sources[s];
       source.name = (source.type === 'self') ? this.main_nick : s;
-      if (source.type === 'relay') this.relays[s] = [];
+      if (source.type === 'relay') source.relays = [];
       if (Array.isArray(source.commands)) {
         source.commands.forEach(function(c) {
           if (typeof c.command !== 'string') return;
           c.command = c.command.toLowerCase();
+          c.source = source;
           if (this.command_map[c.command]) {
             console.log("Warning: Duplicate command \"" + c.command + "\" for source " + s + "; was already assigned to " + this.command_map[c.command]);
             return;
           }
-          this.command_map[c.command] = s;
+          this.command_map[c.command] = c;
         }, this);
       }
     }, this);
   },
 
-  get_source: function(command) {
-    if (typeof command !== 'string') return;
+  get_command_object: function(command) {
     command = command.toLowerCase();
-    var source_name = this.command_map[command];
-    if (typeof source_name !== 'string') return;
-    if (typeof this.sources[source_name] !== 'object') return;
-    return this.sources[source_name];
+    if (typeof command !== 'string') return;
+    if (typeof this.command_map !== 'object') return;
+    if (typeof this.command_map[command] !== 'object') return;
+    return this.command_map[command];
   },
 
   main_listeners: {
     'message': function(nick, to, text, message) {
       var params = text.split(/ +/);
       var action = params.shift().toLowerCase();
-      var source = this.get_source(action);
+      var command = this.get_command_object(action);
+      var source;
+      if (!command) return;
+      source = command.source;
       if (!source) return;
       if (typeof source.type !== 'string') return;
       if (typeof this.command_handlers[source.type] !== 'function') return;
       this.command_handlers[source.type].call(this, {
         source: source,
+        command: command,
         fulltext: text,
         action: action,
+        nick: nick,
         reply: (to === this.main_nick ? nick : to),
         params: params
       });
@@ -94,17 +98,20 @@ var relaybot = {
   },
 
   relay_message: function(nick, to, text, message) {
-    var target;
+    var target, relays;
     // was message sender a watched relay bot?
-    if (typeof this.relays[nick] === 'undefined') return;
-    target = this.relays[nick][0];
+    if (typeof this.sources[nick] === 'undefined') return;
+    relays = this.sources[nick].relays;
+    if (!Array.isArray(relays)) return;
+
+    target = relays[0];
     if (typeof target !== 'string') {
       // default to main channel if there's no relay target
       target = this.main_channel;
     } else {
       // todo: properly check length of relay message
       // currently assumed to be 1 line, so any extra lines will mess it up
-      this.relays[nick].pop();
+      relays.pop();
     }
     if (to === this.relay_nick || this.check_watchlist(text)) {
       this.main_client.say(target, text);
@@ -119,8 +126,15 @@ var relaybot = {
       }
     },
     'relay': function(opt) {
-      this.relays[opt.source.name].push(opt.reply);
-      this.relay_client.say(opt.source.name, opt.fulltext);
+      if (!Array.isArray(opt.source.relays)) return;
+      opt.source.relays.push(opt.reply);
+      if (opt.params.length === 0 && opt.command.add_nick) {
+        // if "add_nick" specified in source config,
+        // add the caller's nick to the command
+        this.relay_client.say(opt.source.name, opt.action + ' ' + opt.nick);
+      } else {
+        this.relay_client.say(opt.source.name, opt.fulltext);
+      }
     }
   },
 
@@ -153,24 +167,23 @@ var relaybot = {
       this.say_phrase(opt.reply, 'watched', watchtext);
     },
     '!help': function(opt) {
-      var source, cmd;
+      var command;
       var cmdlist = [];
       if (opt.params.length === 0) {
         Object.keys(this.command_map).forEach(function(c) {
           cmdlist.push(c);
         });
-        this.say_phrase(opt.reply, 'help', cmdlist.join(' '));
+        this.say_phrase(opt.reply, 'help', cmdlist.sort().join(' '));
         return;
       }
-      cmd = opt.params[0].toLowerCase();
-      source = this.get_source(opt.params[0]);
-      if (!source) {
+      command = this.get_command_object(opt.params[0]);
+      if (!command) {
         this.say_phrase(opt.reply, 'help_notfound', opt.params[0]);
         return;
       }
-      this.say_text(opt.reply, 'Provided by: ' + source.name);
-      if (source.description) {
-        this.say_text(opt.reply, source.description);
+      this.say_text(opt.reply, 'Provided by: ' + command.source.name);
+      if (command.description) {
+        this.say_text(opt.reply, command.description);
       } else {
         this.say_phrase(opt.reply, 'help_not_available', opt.params[0]);
       }
