@@ -6,23 +6,23 @@ var sources =
     "commands": [
       {
         "command": "!playing",
-        "description": ""
+        "description": "Show who on the watchlist is currently playing."
       },
       {
         "command": "!watch",
-        "description": ""
+        "description": "Watch a user. (Crawl name, NOT IRC nick!)"
       },
       {
         "command": "!unwatch",
-        "description": ""
+        "description": "Unwatch a user. (Crawl name, NOT IRC nick!)"
       },
       {
         "command": "!watched",
-        "description": ""
+        "description": "Show list of watched users."
       },
       {
         "command": "!help",
-        "description": ""
+        "description": "Pretty self-explanatory, isn't it?"
       }
     ]
   },
@@ -31,11 +31,13 @@ var sources =
     "commands": [
       {
         "command": "%whereis",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists where a player currently is in the dungeon. (crawl.s-z.org)"
       },
       {
         "command": "%dump",
-        "description": ""
+        "add_nick": true,
+        "description": "Gives an URL to the specified user's last character dump. (crawl.s-z.org)"
       }
     ]
   },
@@ -44,15 +46,17 @@ var sources =
     "commands": [
       {
         "command": "@??",
-        "description": ""
+        "description": "Usage: @?? <monster name>"
       },
       {
         "command": "@whereis",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists where a player currently is in the dungeon. (crawl.develz.org)"
       },
       {
         "command": "@dump",
-        "description": ""
+        "add_nick": true,
+        "description": "Gives an URL to the specified user's last character dump. (crawl.develz.org)"
       }
     ]
   },
@@ -61,111 +65,71 @@ var sources =
     "commands": [
       {
         "command": "!chars",
-        "description": ""
-      },
-      {
-        "command": "!cmd",
-        "description": ""
-      },
-      {
-        "command": "!cmdinfo",
-        "description": ""
-      },
-      {
-        "command": "!deathsin",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists the frequency of all character types a player started."
       },
       {
         "command": "!gamesby",
-        "description": ""
+        "add_nick": true,
+        "description": "Summarizes a player's public server career."
       },
       {
         "command": "!gkills",
-        "description": ""
-      },
-      {
-        "command": "!help",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists the top kills for a player's ghost."
       },
       {
         "command": "!hs",
-        "description": ""
-      },
-      {
-        "command": "!keyworddef",
-        "description": ""
-      },
-      {
-        "command": "!killratio",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists the highest-scoring game for a player."
       },
       {
         "command": "!killsby",
-        "description": ""
-      },
-      {
-        "command": "!kw",
-        "description": ""
+        "description": "Lists the most frequent victims for a given monster. Use -i to show indirect kills (e.g. rat summoned by vampire)."
       },
       {
         "command": "!lg",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !lg (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info."
       },
       {
         "command": "!listgame",
-        "description": ""
-      },
-      {
-        "command": "!lm",
-        "description": ""
-      },
-      {
-        "command": "!locateall",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !listgame (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info."
       },
       {
         "command": "!log",
-        "description": ""
-      },
-      {
-        "command": "!nchoice",
-        "description": ""
-      },
-      {
-        "command": "!nick",
-        "description": ""
+        "add_nick": true,
+        "description": "Gives a URL to the user's last morgue file. Accepts !listgame style selectors."
       },
       {
         "command": "%rc",
-        "description": ""
+        "add_nick": true,
+        "description": "Gives a URL to the user's rc file."
       },
       {
         "command": "!streak",
-        "description": ""
-      },
-      {
-        "command": "!title",
-        "description": ""
+        "add_nick": true,
+        "description": "Show's a player's winning streak (or lack thereof)."
       },
       {
         "command": "!ttr",
-        "description": ""
+        "add_nick": true,
+        "description": "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors."
       },
       {
         "command": "!ttyrec",
-        "description": ""
+        "add_nick": true,
+        "description": "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors."
       },
       {
         "command": "!tv",
-        "description": ""
-      },
-      {
-        "command": "!tvdef",
-        "description": ""
+        "description": "Usage: !tv <game>. Plays the game on FooTV."
       },
       {
         "command": "!won",
-        "description": ""
+        "add_nick": true,
+        "description": "Shows the number of games won. Usage: !won <nick> [<number of wins to skip>]"
       }
     ]
   },
@@ -174,133 +138,42 @@ var sources =
     "commands": [
       {
         "command": "??",
-        "description": ""
+        "description": "Look up an entry in LearnDB."
       },
       {
         "command": "!abyss",
-        "description": ""
+        "add_nick": true,
+        "description": "Use with caution."
       },
       {
         "command": "!apt",
-        "description": ""
-      },
-      {
-        "command": "!cdefine",
-        "description": ""
-      },
-      {
-        "command": "!cheers",
-        "description": ""
-      },
-      {
-        "command": "!cmdinfo",
-        "description": ""
-      },
-      {
-        "command": "!coffee",
-        "description": ""
+        "description": "Looks up aptitudes for specified race/skill combination."
       },
       {
         "command": "!dump",
-        "description": ""
-      },
-      {
-        "command": "!echo",
-        "description": ""
+        "add_nick": true,
+        "description": "Gives an URL to the specified user's last character dump. (crawl.akrasiac.org)"
       },
       {
         "command": "!ftw",
-        "description": ""
-      },
-      {
-        "command": "!function",
-        "description": ""
-      },
-      {
-        "command": "!help",
-        "description": ""
-      },
-      {
-        "command": "!idle",
-        "description": ""
-      },
-      {
-        "command": "!learn",
-        "description": ""
-      },
-      {
-        "command": "!macro",
-        "description": ""
-      },
-      {
-        "command": "!messages",
-        "description": ""
-      },
-      {
-        "command": "!nick",
-        "description": ""
-      },
-      {
-        "command": "!rc",
-        "description": ""
+        "description": "Abbreviates race/role abbreviations. Example usage: !ftw Troll Berserker"
       },
       {
         "command": "!rng",
-        "description": ""
-      },
-      {
-        "command": "!seen",
-        "description": ""
-      },
-      {
-        "command": "!send",
-        "description": ""
-      },
-      {
-        "command": "!skill",
-        "description": ""
-      },
-      {
-        "command": "!source",
-        "description": ""
-      },
-      {
-        "command": "!tell",
-        "description": ""
+        "description": "Chooses randomly between its (space-separated) arguments. Accepts @god, @char, @role, and @race special arguments. Prefixing the special argument with 'good' or 'bad' limits the choices to only unrestricted or only restricted combos, respectively. @role=<role> or @race=<race> chooses a random combo with the specified role/race."
       },
       {
         "command": "!time",
-        "description": ""
-      },
-      {
-        "command": "!vault",
-        "description": ""
+        "description": "Shows the UTC time on crawl.akrasiac.org."
       },
       {
         "command": "!whereis",
-        "description": ""
+        "add_nick": true,
+        "description": "Lists where a player currently is in the dungeon. (crawl.akrasiac.org)"
       },
       {
         "command": "!wtf",
-        "description": ""
-      }
-    ]
-  },
-  "apocalypsebot": {
-    "type": "relay",
-    "commands": [
-      {
-        "command": "!time",
-        "description": ""
-      }
-    ]
-  },
-  "Cheibriados": {
-    "type": "relay",
-    "commands": [
-      {
-        "command": "%??",
-        "description": ""
+        "description": "Expands race/role abbreviations. Example usage: !wtf TrBe"
       }
     ]
   }
