@@ -5,13 +5,11 @@ var sources = require('./sources');
 
 var bot = relaybot.create({
   main_server: "irc.lunarnet.org",
-  main_channel: "#octotest",
+  main_channel: "#octolog",
   relay_server: "chat.freenode.net",
   relay_channel: "##crawl",
-//  relay_server: "irc.lunarnet.org",
-//  relay_channel: "#octotest",
-  main_nick: "ALTERNATROG",
-  relay_nick: "RELAYTROG",
+  main_nick: "OCTOTROG",
+  relay_nick: "OCTOTROG",
   irc_options: {
     userName: "octotrog",
     realName: "OCTOTROG",
