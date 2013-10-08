@@ -46,6 +46,7 @@ var sources =
     "commands": [
       {
         "command": "@??",
+        "no_space": true,
         "description": "Usage: @?? <monster name>"
       },
       {
@@ -138,6 +139,7 @@ var sources =
     "commands": [
       {
         "command": "??",
+        "no_space": true,
         "description": "Look up an entry in LearnDB."
       },
       {

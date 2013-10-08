@@ -33,6 +33,7 @@ var relaybot = {
     this.sources = this.sources || {};
     extend(true, this.sources, sources);
     this.command_map = {};
+    this.command_map_nospace = {};
     Object.keys(this.sources).forEach(function(s) {
       var source = this.sources[s];
       source.name = (source.type === 'self') ? this.main_nick : s;
@@ -47,17 +48,27 @@ var relaybot = {
             return;
           }
           this.command_map[c.command] = c;
+          if (c.no_space) this.command_map_nospace[c.command] = c;
         }, this);
       }
     }, this);
   },
 
   get_command_object: function(command) {
+    var cmd;
     command = command.toLowerCase();
     if (typeof command !== 'string') return;
     if (typeof this.command_map !== 'object') return;
-    if (typeof this.command_map[command] !== 'object') return;
-    return this.command_map[command];
+    if (typeof this.command_map[command] === 'object') return this.command_map[command];
+    // check for nospace commands
+    Object.keys(this.command_map_nospace).some(function(c) {
+      if (c.length > command.length) return;
+      if (command.substr(0, c.length) === c) {
+        cmd = this.command_map_nospace[c];
+        return true;
+      }
+    }, this);
+    return cmd;
   },
 
   main_listeners: {
