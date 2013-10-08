@@ -7,7 +7,7 @@ var vsprintf = require('sprintf').vsprintf;
 var defaults = {
   max_line_length: 300,
   irc_options: {
-    stripColors: true,
+    stripColors: false,
     floodProtection: true
   }
 };

@@ -26,41 +26,6 @@ var sources =
       }
     ]
   },
-  "Sizzell": {
-    "type": "relay",
-    "commands": [
-      {
-        "command": "%whereis",
-        "add_nick": true,
-        "description": "Lists where a player currently is in the dungeon. (crawl.s-z.org)"
-      },
-      {
-        "command": "%dump",
-        "add_nick": true,
-        "description": "Gives an URL to the specified user's last character dump. (crawl.s-z.org)"
-      }
-    ]
-  },
-  "Gretell": {
-    "type": "relay",
-    "commands": [
-      {
-        "command": "@??",
-        "no_space": true,
-        "description": "Usage: @?? <monster name>"
-      },
-      {
-        "command": "@whereis",
-        "add_nick": true,
-        "description": "Lists where a player currently is in the dungeon. (crawl.develz.org)"
-      },
-      {
-        "command": "@dump",
-        "add_nick": true,
-        "description": "Gives an URL to the specified user's last character dump. (crawl.develz.org)"
-      }
-    ]
-  },
   "Sequell": {
     "type": "relay",
     "commands": [
@@ -80,6 +45,16 @@ var sources =
         "description": "Lists the top kills for a player's ghost."
       },
       {
+        "command": "!greatplayer",
+        "add_nick": true,
+        "description": "Shows a player's unwon species."
+      },
+      {
+        "command": "!greaterplayer",
+        "add_nick": true,
+        "description": "Shows a player's unwon backgrounds."
+      },
+      {
         "command": "!hs",
         "add_nick": true,
         "description": "Lists the highest-scoring game for a player."
@@ -87,6 +62,10 @@ var sources =
       {
         "command": "!killsby",
         "description": "Lists the most frequent victims for a given monster. Use -i to show indirect kills (e.g. rat summoned by vampire)."
+      },
+      {
+        "command": "!killratio",
+        "description": "Usage: !killratio <unique monster> <player>"
       },
       {
         "command": "!lg",
@@ -176,6 +155,41 @@ var sources =
       {
         "command": "!wtf",
         "description": "Expands race/role abbreviations. Example usage: !wtf TrBe"
+      }
+    ]
+  },
+  "Gretell": {
+    "type": "relay",
+    "commands": [
+      {
+        "command": "@??",
+        "no_space": true,
+        "description": "Usage: @?? <monster name>"
+      },
+      {
+        "command": "@whereis",
+        "add_nick": true,
+        "description": "Lists where a player currently is in the dungeon. (crawl.develz.org)"
+      },
+      {
+        "command": "@dump",
+        "add_nick": true,
+        "description": "Gives an URL to the specified user's last character dump. (crawl.develz.org)"
+      }
+    ]
+  },
+  "Sizzell": {
+    "type": "relay",
+    "commands": [
+      {
+        "command": "%whereis",
+        "add_nick": true,
+        "description": "Lists where a player currently is in the dungeon. (crawl.s-z.org)"
+      },
+      {
+        "command": "%dump",
+        "add_nick": true,
+        "description": "Gives an URL to the specified user's last character dump. (crawl.s-z.org)"
       }
     ]
   }
