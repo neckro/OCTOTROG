@@ -78,13 +78,20 @@ var relaybot = {
       var params = text.split(/ +/);
       var action = params.shift().toLowerCase();
       var command = this.get_command_object(action);
-      var source;
+      var handler, source;
       if (!command) return;
       source = command.source;
       if (!source) return;
       if (typeof source.type !== 'string') return;
-      if (typeof this.command_handlers[source.type] !== 'function') return;
-      this.command_handlers[source.type].call(this, {
+      if (typeof command.handler === 'function') {
+        handler = command.handler;
+      } else if (typeof this.command_handlers[source.type] === 'function') {
+        handler = this.command_handlers[source.type];
+      } else {
+        console.log('No handler found for command: ' + action);
+        return;
+      }
+      handler.call(this, {
         source: source,
         command: command,
         fulltext: text,
@@ -286,25 +293,23 @@ var relaybot = {
     }
     if (this.max_line_length) {
       text = this.split_line(text, this.max_line_length);
-    } else {
-      text = [text];
     }
-    text.forEach(function(e) {
+    text.split("\n").forEach(function(e) {
       this.main_client.say(target, e);
     }, this);
   },
 
   split_line: function(text, length) {
-    var out = [], pos;
+    var out = '', pos;
     if (!length || typeof text !== 'string') return;
     while (text.length > length) {
       pos = length;
       while (pos > 0 && text.charAt(pos) !== ' ') pos--;
       if (pos === 0) pos = length;
-      out.push(text.substr(0, pos));
+      out += text.substr(0, pos) + "\n";
       text = text.substr(pos + 1);
     }
-    out.push(text);
+    out += text;
     return out;
   }
 
