@@ -57,6 +57,7 @@ var sources =
       {
         "command": "!hs",
         "add_nick": true,
+        "add_nick_params": 1,
         "description": "Lists the highest-scoring game for a player."
       },
       {
@@ -65,6 +66,8 @@ var sources =
       },
       {
         "command": "!killratio",
+        "add_nick": "after",
+        "add_nick_params": 1,
         "description": "Usage: !killratio <unique monster> <player>"
       },
       {

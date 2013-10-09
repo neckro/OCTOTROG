@@ -20,10 +20,12 @@ var relaybot = {
     bot.main_client = new irc.Client(bot.main_server, bot.main_nick, bot.irc_options);
     bot.irc_options.channels = [opt.relay_channel];
     bot.relay_client = new irc.Client(bot.relay_server, bot.relay_nick, bot.irc_options);
-    ['join', 'message', 'kick'].forEach(function(l) {
+    Object.keys(bot.main_listeners).forEach(function(l) {
       bot.main_client.addListener(l, bot.main_listeners[l].bind(bot));
     });
-    bot.relay_client.addListener('message', bot.relay_message.bind(bot));
+    Object.keys(bot.relay_listeners).forEach(function(l) {
+      bot.relay_client.addListener(l, bot.relay_listeners[l].bind(bot));
+    });
     bot.load_data();
     // TODO: detect nick change?
     return bot;
@@ -108,24 +110,26 @@ var relaybot = {
     }
   },
 
-  relay_message: function(nick, to, text, message) {
-    var target, relays;
-    // was message sender a watched relay bot?
-    if (typeof this.sources[nick] === 'undefined') return;
-    relays = this.sources[nick].relays;
-    if (!Array.isArray(relays)) return;
+  relay_listeners: {
+    'message': function(nick, to, text, message) {
+      var target, relays;
+      // was message sender a watched relay bot?
+      if (typeof this.sources[nick] === 'undefined') return;
+      relays = this.sources[nick].relays;
+      if (!Array.isArray(relays)) return;
 
-    target = relays[0];
-    if (typeof target !== 'string') {
-      // default to main channel if there's no relay target
-      target = this.main_channel;
-    } else {
-      // todo: properly check length of relay message
-      // currently assumed to be 1 line, so any extra lines will mess it up
-      relays.pop();
-    }
-    if (to === this.relay_nick || this.check_watchlist(text)) {
-      this.main_client.say(target, text);
+      target = relays[0];
+      if (typeof target !== 'string') {
+        // default to main channel if there's no relay target
+        target = this.main_channel;
+      } else {
+        // todo: properly check length of relay message
+        // currently assumed to be 1 line, so any extra lines will mess it up
+        relays.pop();
+      }
+      if (to === this.relay_nick || this.check_watchlist(text)) {
+        this.main_client.say(target, text);
+      }
     }
   },
 
@@ -137,15 +141,26 @@ var relaybot = {
       }
     },
     'relay': function(opt) {
+      var output, param_max, param_copy;
       if (!Array.isArray(opt.source.relays)) return;
       opt.source.relays.push(opt.reply);
-      if (opt.params.length === 0 && opt.command.add_nick) {
-        // if "add_nick" specified in source config,
-        // add the caller's nick to the command
-        this.relay_client.say(opt.source.name, opt.action + ' ' + opt.nick);
-      } else {
-        this.relay_client.say(opt.source.name, opt.fulltext);
+      // add the requester's nick to the command, as appropriate
+      // add_nick = true: add nick before params
+      // add_nick = 'after': add nick after params
+      // add_nick_params: max number of parameters to add nick to (def. 0)
+      param_max = opt.command.add_nick_params || 0;
+      param_copy = opt.params.slice();
+      if (opt.params.length <= param_max) {
+        if (opt.command.add_nick === true) {
+          param_copy.unshift(opt.nick);
+        } else if (opt.command.add_nick === 'after') {
+          param_copy.push(opt.nick);
+        }
       }
+      output = opt.action;
+      if (!opt.source.no_space) output += ' ';
+      output += param_copy.join(' ');
+      this.relay_client.say(opt.source.name, output);
     }
   },
 
