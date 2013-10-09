@@ -23,6 +23,13 @@ var sources =
       {
         command: "!help",
         description: "Pretty self-explanatory, isn't it?"
+      },
+      {
+        command: "!tourney",
+        description: "Show tourney info.",
+        handler: function(opt) {
+          this.main_client.say(opt.reply, this.sayings.tourney_info);
+        }
       }
     ]
   },

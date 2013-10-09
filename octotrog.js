@@ -18,7 +18,8 @@ var bot = relaybot.create({
   },
   savefile: './octosave.json',
   command_regex: /^[!$?%@]/,
-  "sayings": {
+  sayings: {
+    tourney_info: "Tournament starts on Oct 11, 2013 at 20:00 UTC, and ends on Oct 27, 2013 at 20:00 UTC. More info: http://dobrazupa.org/tournament/0.13/",
     greeting: "kill them all?",
     kicked: irc.colors.wrap('light_red', 'trog vigorously angry.'),
     help: "my commands are: %s. praise be to trog.",
@@ -32,7 +33,6 @@ var bot = relaybot.create({
   say_transform: function(text) {
     return text.toString().toUpperCase();
   }
-
 });
 
 bot.add_sources(sources);
