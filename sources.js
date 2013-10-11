@@ -88,6 +88,11 @@ var sources =
         description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !listgame (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info."
       },
       {
+        command: "!lm",
+        add_nick: true,
+        description: "Lists milestones for the specified player. Usage: !lm (<player>) (<number>) (options) where options are in the form field=value, or (max|min)=field. See ??milestone for more info."
+      },
+      {
         command: "!log",
         add_nick: true,
         description: "Gives a URL to the user's last morgue file. Accepts !listgame style selectors."
