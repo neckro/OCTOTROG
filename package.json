@@ -1,6 +1,6 @@
 {
   "name": "OCTOTROG",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "git@github.com:neckro/OCTOTROG.JS.git"
@@ -11,7 +11,6 @@
     "extend": "~1.2.1",
     "sprintf": "~0.1.2"
   },
-  "devDependencies": {},
   "engines": {
     "node": "~0.10.20"
   },
