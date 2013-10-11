@@ -37,12 +37,6 @@ var bot_options = {
       name: "OCTOTROG",
       prefix: "!",
       commands: {
-        "playing": {
-          description: "Show who on the watchlist is currently playing.",
-          action: function(opt) {
-            this.bot.say_text(opt.reply, "this don't work yet.");
-          }
-        },
         "tourney": {
           description: "Show tourney info.",
           response: function(opt) {

@@ -75,6 +75,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!locateall": {
+      description: "Shows who is currently playing.  Give a nick to show only that player.",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(this.get_watchlist().join('|'));
+        this.relay('Sequell', opt);
+      }
+    },
     "!log": {
       description: "Gives a URL to the user's last morgue file. Accepts !listgame style selectors.",
       response: function(opt) {
@@ -230,18 +237,17 @@ module.exports = {
     this.bot.relay_client.say(remote_bot, opt.params.join(' '));
   },
 
-  check_watchlist: function(text) {
-    var watchlist, plugin;
-    if (typeof text !== 'string') return;
-    plugin = this.bot.get_plugin('watchlist');
-    if (!plugin || typeof plugin.get_watchlist !== 'function') return;
-    watchlist = plugin.get_watchlist();
-    if (!watchlist) return;
+  get_watchlist: function() {
+    var plugin = this.bot.get_plugin('watchlist');
+    if (!plugin || typeof plugin.get_watchlist !== 'function') return [];
+    return plugin.get_watchlist() || [];
+  },
 
+  check_watchlist: function(text) {
     // strip number from beginning
     text = text.toLowerCase().replace(/^[0-9]*\. /, '');
 
-    return watchlist.some(function(nick) {
+    return this.get_watchlist().some(function(nick) {
       nick = nick.toString().toLowerCase();
       if (text.indexOf(nick + ' ') === 0) return true;
       if (text.indexOf(nick + "'s ghost") > -1) return true;
