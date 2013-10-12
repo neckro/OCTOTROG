@@ -89,6 +89,12 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!nchoice": {
+      description: "Shows Nemelex's Choice.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "%rc": {
       description: "Gives a URL to the user's rc file.",
       response: function(opt) {
