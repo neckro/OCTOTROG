@@ -70,8 +70,8 @@ var bot_options = {
               ));
               this.bot.say_text(opt.reply,
                 'members: %s (captain), %s',
-                teams[team_name].shift(),
-                teams[team_name].join(', ')
+                teams[team_name][0],
+                teams[team_name].slice(1).join(', ')
               );
             } else {
               this.bot.say_text(opt.reply, 'player %s is not on a team.', nick);
