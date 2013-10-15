@@ -1,6 +1,7 @@
 "use strict";
 var fs = require('fs');
 var irc = require('irc');
+var path = require('path');
 var extend = require('extend');
 var vsprintf = require('sprintf').vsprintf;
 
@@ -16,13 +17,7 @@ var relaybot = {
   create: function(opt) {
     var bot = Object.create(relaybot);
 
-    // Add plugins
-    bot.plugins = [default_plugin].concat(opt.plugins || []);
-    if (opt.plugins) delete opt.plugins;
-    bot.plugins.forEach(function(p) {
-      p.bot = bot;
-    });
-
+    bot.plugins = {};
     extend(true, bot, defaults, opt);
 
     // other default handling
@@ -34,6 +29,9 @@ var relaybot = {
 
     // load JSON file
     bot.load_data();
+
+    // load main default plugin
+    bot.load_plugin('main');
 
     Object.keys(bot.main_listeners).forEach(function(l) {
       bot.main_client.addListener(l, bot.main_listeners[l].bind(bot));
@@ -47,11 +45,10 @@ var relaybot = {
 
   get_handler: function(text) {
     var handler;
-    if (!Array.isArray(this.plugins)) return;
     if (typeof text !== 'string' || text.length === 0) return;
     text = text.toLowerCase() + ' ';
 
-    this.plugins.some(function(plugin) {
+    this.plugin_any(function(plugin) {
       var prefix = (typeof plugin.prefix === 'string') ? plugin.prefix : '';
       if (
         prefix.length === 0 || (
@@ -84,9 +81,47 @@ var relaybot = {
     return handler;
   },
 
+  plugin_any: function(fn) {
+    if (typeof this.plugins !== 'object') return;
+    return Object.keys(this.plugins).some(function(k) {
+      return fn(this.plugins[k]);
+    }, this);
+  },
+
+  plugin_every: function(fn) {
+    if (typeof this.plugins !== 'object') return;
+    return Object.keys(this.plugins).forEach(function(k) {
+      return fn(this.plugins[k]);
+    }, this);
+  },
+
+  load_plugin: function(name, prefix) {
+    var plugin, plugin_file;
+    plugin_file = 'plugin.' + path.basename(name, '.js');
+    try {
+      require.resolve('./' + plugin_file);
+      // purge Node's require cache to force the file to be reloaded
+      Object.keys(require.cache).forEach(function(c) {
+        if (path.basename(c, '.js') === plugin_file) {
+          delete require.cache[c];
+        }
+      });
+      plugin = require('./' + plugin_file);
+      plugin.bot = this;
+      if (typeof prefix === 'string') plugin.prefix = prefix;
+      this.plugins[plugin_file] = plugin;
+      return true;
+    } catch (e) {
+      // can't find it
+      console.log(e);
+      console.warn("Warning: Can't find plugin " + plugin_file);
+      return false;
+    }
+  },
+
   get_plugin: function(name) {
     var plugin;
-    this.plugins.some(function(p) {
+    this.plugin_any(function(p) {
       if (p.name === name) {
         plugin = p;
         return true;
@@ -124,7 +159,7 @@ var relaybot = {
 
   relay_listeners: {
     'message': function(nick, to, text, message) {
-      this.plugins.some(function(plugin) {
+      this.plugin_any(function(plugin) {
         if (typeof plugin.relay_listener === 'function') {
           plugin.relay_listener.call(plugin, nick, to, text);
         }
@@ -189,42 +224,6 @@ var relaybot = {
     this.saved = JSON.parse(fs.readFileSync(this.savefile));
   }
 
-};
-
-var default_plugin = {
-  prefix: '!',
-  commands: {
-    'help': {
-      description: "Pretty self-explanatory, isn't it?",
-      response: function(opt) {
-        var cmdlist = [], handler;
-        if (opt.params.length > 0) {
-          // Show command help
-          handler = this.bot.get_handler(opt.params[0]);
-          if (handler) {
-            if (handler.command.description) {
-              this.bot.say_text(opt.reply, opt.params[0] + ' - ' + handler.command.description);
-            } else {
-              this.bot.say_phrase(opt.reply, 'help_not_available', opt.params[0]);
-            }
-          } else {
-            this.bot.say_phrase(opt.reply, 'help_not_found', opt.params[0]);
-          }
-          return;
-        }
-
-        // Show all commands
-        this.bot.plugins.forEach(function(p) {
-          if (typeof p.commands !== 'object') return;
-          Object.keys(p.commands).forEach(function(c) {
-            cmdlist.push((p.prefix || '') + c);
-          });
-        });
-
-        this.bot.say_phrase(opt.reply, 'help', cmdlist.sort().join(' '));
-      }
-    }
-  }
 };
 
 module.exports = relaybot;
