@@ -43,7 +43,7 @@ module.exports = {
     "!hs": {
       description: "Lists the highest-scoring game for a player.",
       response: function(opt) {
-        if (opt.params.length < 2) opt.params.unshift(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Sequell', opt);
       }
     },
