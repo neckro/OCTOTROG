@@ -96,8 +96,7 @@ var relaybot = {
   },
 
   load_plugin: function(name, prefix) {
-    var plugin, plugin_file;
-    plugin_file = 'plugin.' + path.basename(name, '.js');
+    var plugin_file = 'plugin.' + path.basename(name, '.js');
     try {
       require.resolve('./' + plugin_file);
       // purge Node's require cache to force the file to be reloaded
@@ -106,7 +105,7 @@ var relaybot = {
           delete require.cache[c];
         }
       });
-      plugin = require('./' + plugin_file);
+      var plugin = require('./' + plugin_file);
       plugin.bot = this;
       if (typeof prefix === 'string') plugin.prefix = prefix;
       this.plugins[plugin_file] = plugin;

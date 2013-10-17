@@ -17,10 +17,9 @@ module.exports = {
     'help': {
       description: "Pretty self-explanatory, isn't it?",
       response: function(opt) {
-        var cmdlist = [], handler;
         if (opt.params.length > 0) {
           // Show command help
-          handler = this.bot.get_handler(opt.params[0]);
+          var handler = this.bot.get_handler(opt.params[0]);
           if (handler) {
             if (handler.command.description) {
               this.bot.say_text(opt.reply, opt.params[0] + ' - ' + handler.command.description);
@@ -34,6 +33,7 @@ module.exports = {
         }
 
         // Show all commands
+        var cmdlist = [];
         this.bot.plugin_every(function(p) {
           if (typeof p.commands !== 'object') return;
           Object.keys(p.commands).forEach(function(c) {
