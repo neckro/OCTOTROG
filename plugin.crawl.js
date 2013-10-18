@@ -264,7 +264,7 @@ module.exports = {
   relay_listener: function(nick, to, text) {
     // was message sender a watched relay bot?
     if ([
-      'Sequell', 'Henzell', 'Gretell', 'Sizzell'
+      'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'
     ].indexOf(nick) === -1) return;
 
     if (to === this.bot.relay_nick || this.check_watchlist(text)) {
