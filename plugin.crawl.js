@@ -234,7 +234,24 @@ module.exports = {
         if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Sizzell', opt);
       }
+    },
+
+    // Lantell
+    "$whereis": {
+      description: "Lists where a player currently is in the dungeon. (crawl.lantea.net)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Lantell', opt);
+      }
+    },
+    "$dump": {
+      description: "Gives an URL to the specified user's last character dump. (crawl.lantea.net)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Lantell', opt);
+      }
     }
+
   },
 
   relay: function(remote_bot, opt) {
