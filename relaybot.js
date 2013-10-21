@@ -43,10 +43,10 @@ var relaybot = {
     return bot;
   },
 
-  get_handler: function(text) {
+  get_handler: function(input) {
     var handler;
-    if (typeof text !== 'string' || text.length === 0) return;
-    text = text.toLowerCase() + ' ';
+    if (typeof input !== 'string' || input.length === 0) return;
+    var text = input.toLowerCase() + ' ';
 
     this.plugin_any(function(plugin) {
       var prefix = (typeof plugin.prefix === 'string') ? plugin.prefix : '';
@@ -64,14 +64,15 @@ var relaybot = {
           if (test.length > text.length) return;
           if (text.substr(0, test.length) === test) {
             // found a match
-            params = text.substr(test.length).trim().split(/ +/);
+            params = input.substr(test.length).trim().split(/ +/);
             if (params[0] === '') params = [];
             handler = {
               command: plugin.commands[cmd],
               plugin: plugin,
               action: prefix + cmd,
               params: params,
-              fulltext: text
+              text: params.join(' '),
+              fulltext: input
             };
             return true;
           }
@@ -221,6 +222,33 @@ var relaybot = {
       return;
     }
     this.saved = JSON.parse(fs.readFileSync(this.savefile));
+  },
+
+  get_saved: function(key, name) {
+    if (typeof key !== 'string') return;
+    var out = this.saved[key.toLowerCase()];
+    if (typeof name === 'string') {
+      return out[name.toLowerCase()];
+    } 
+    return out;
+  },
+
+  store_saved: function(key, name, data) {
+    if (typeof key !== 'string') return;
+    if (typeof name !== 'string') return;
+    key = key.toLowerCase();
+    name = name.toLowerCase();
+    if (typeof this.saved[key] !== 'object') this.saved[key] = {};
+    if (typeof data !== 'undefined') { 
+      this.saved[key][name] = data;
+    } else {
+      delete this.saved[key][name];
+    }
+    return this.save_data();
+  },
+
+  delete_saved: function(key, name) {
+    return this.store_saved(key, name);
   }
 
 };
