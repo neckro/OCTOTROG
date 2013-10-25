@@ -54,6 +54,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!lairratio": {
+      description: "Shows how often a player reaches the Lair.",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sequell', opt);
+      }
+    },
     "!lg": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !lg (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(opt) {
