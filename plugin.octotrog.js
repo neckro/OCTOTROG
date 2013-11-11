@@ -24,7 +24,7 @@ module.exports = {
         if (this.bot.store_saved('info', term, def)) {
           this.bot.say_text(opt.reply, 'Trog save entry for %s.', term);
         } else {
-          this.bot.say_text(opt.reply, 'Error saving entry for %s.', term);
+          this.bot.say_text(opt.reply, 'Trog have enraging problem saving entry for %s.', term);
         }
       }
     },
@@ -32,9 +32,9 @@ module.exports = {
       description: "Remove an entry from the database.",
       response: function(opt) {
         if (this.bot.delete_saved('info', opt.text)) {
-          this.bot.say_text(opt.reply, 'Entry deleted for %s.', opt.text);
+          this.bot.say_text(opt.reply, 'Trog destroy entry for %s.', opt.text);
         } else {
-          this.bot.say_text(opt.reply, 'No entry for %s.', opt.text);
+          this.bot.say_text(opt.reply, 'Trog no see entry for %s.', opt.text);
         }
       }
     },
