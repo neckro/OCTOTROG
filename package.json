@@ -15,6 +15,7 @@
     "node": "~0.10.20"
   },
   "scripts": {
-    "start": "node octotrog.js"
+    "start": "node octotrog.js",
+    "test": "node octotrog.js test"
   }
 }
