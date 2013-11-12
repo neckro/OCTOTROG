@@ -1,8 +1,55 @@
 "use strict";
+var irc = require('irc');
+var extend = require('extend');
 
 module.exports = {
   name: "crawl",
   prefix: "",
+  init: function() {
+    var options = extend({}, this.bot.irc || {}, {
+      channels: ['##crawl']
+    });
+    this.relay_nick = this.bot.relay_nick || this.bot.nick || 'OCTOTROG';
+    this.relay_client = new irc.Client(
+      this.bot.relay_server || 'chat.freenode.net',
+      this.relay_nick,
+      options
+    );
+    this.relay_client.addListener('message', function(nick, to, text, message) {
+      if ([
+        'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'
+      ].indexOf(nick) === -1) return;
+
+      if (to === this.relay_nick || this.check_watchlist(text)) {
+        this.bot.client.say(this.bot.main_channel, text);
+      }
+    }.bind(this));
+  },
+
+  relay: function(remote_bot, opt) {
+    opt.params.unshift(opt.action);
+    // TODO: make msg relaying work again
+    this.relay_client.say(remote_bot, opt.params.join(' '));
+  },
+
+  get_watchlist: function() {
+    var plugin = this.bot.get_plugin('watchlist');
+    if (!plugin || typeof plugin.get_watchlist !== 'function') return [];
+    return plugin.get_watchlist() || [];
+  },
+
+  check_watchlist: function(text) {
+    // strip number from beginning
+    text = text.toLowerCase().replace(/^[0-9]*\. /, '');
+
+    return this.get_watchlist().some(function(nick) {
+      nick = nick.toString().toLowerCase();
+      if (text.indexOf(nick + ' ') === 0) return true;
+      if (text.indexOf(nick + "'s ghost") > -1) return true;
+      if (text.indexOf('the ghost of ' + nick) > -1) return true;
+    });
+  },
+
   commands: {
     // Sequell
     "!chars": {
@@ -257,42 +304,6 @@ module.exports = {
         if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Lantell', opt);
       }
-    }
-
-  },
-
-  relay: function(remote_bot, opt) {
-    opt.params.unshift(opt.action);
-    // TODO: make msg relaying work again
-    this.bot.relay_client.say(remote_bot, opt.params.join(' '));
-  },
-
-  get_watchlist: function() {
-    var plugin = this.bot.get_plugin('watchlist');
-    if (!plugin || typeof plugin.get_watchlist !== 'function') return [];
-    return plugin.get_watchlist() || [];
-  },
-
-  check_watchlist: function(text) {
-    // strip number from beginning
-    text = text.toLowerCase().replace(/^[0-9]*\. /, '');
-
-    return this.get_watchlist().some(function(nick) {
-      nick = nick.toString().toLowerCase();
-      if (text.indexOf(nick + ' ') === 0) return true;
-      if (text.indexOf(nick + "'s ghost") > -1) return true;
-      if (text.indexOf('the ghost of ' + nick) > -1) return true;
-    });
-  },
-
-  relay_listener: function(nick, to, text) {
-    // was message sender a watched relay bot?
-    if ([
-      'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'
-    ].indexOf(nick) === -1) return;
-
-    if (to === this.bot.relay_nick || this.check_watchlist(text)) {
-      this.bot.main_client.say(this.bot.main_channel, text);
     }
   }
 };

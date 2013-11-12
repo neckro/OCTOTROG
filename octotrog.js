@@ -1,21 +1,18 @@
 "use strict";
 var irc = require('irc');
-var relaybot = require('./relaybot');
+var ircbot = require('./ircbot');
 
 var bot, bot_options = {
-  main_server: "irc.lunarnet.org",
+  server: "irc.lunarnet.org",
   main_channel: "#octolog",
-  relay_server: "chat.freenode.net",
-  relay_channel: "##crawl",
-  main_nick: "OCTOTROG",
-  relay_nick: null,
-  irc_options: {
+  nick: "OCTOTROG",
+  irc: {
     userName: "octotrog",
     realName: "OCTOTROG",
     debug: true,
     showErrors: true
   },
-  savefile: './octosave.json',
+  savefile: './save.json',
   command_regex: /^[!$?%@]/,
   sayings: {
     tourney_info: "Tournament ends on Oct 27, 2013 at 20:00 UTC. http://dobrazupa.org/tournament/0.13/overview.html",
@@ -37,11 +34,10 @@ var bot, bot_options = {
 
 if (process.argv[2] === 'test') {
   bot_options.main_channel = '#octotest';
-  bot_options.relay_channel = '#octotest';
-  bot_options.main_nick = 'TESTTROG';
+  bot_options.nick = 'TESTTROG';
 }
 
-bot = relaybot.create(bot_options);
+bot = ircbot.create(bot_options);
 bot.load_plugin('watchlist');
 bot.load_plugin('crawl');
 bot.load_plugin('octotrog');

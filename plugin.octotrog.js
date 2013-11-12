@@ -8,7 +8,7 @@ module.exports = {
     "!tourney": {
       description: "Show tourney info.",
       response: function(opt) {
-        this.bot.main_client.say(opt.reply, this.bot.sayings.tourney_info);
+        this.bot.client.say(opt.reply, this.bot.sayings.tourney_info);
       }
     },
     "!dbadd": {
@@ -55,7 +55,7 @@ module.exports = {
           if (typeof def === 'string') redirect = def.match(/^\{(.*)\}$/);
           if (redirect) def = this.bot.get_saved('info', redirect[1]);
           if (def) {
-            this.bot.main_client.say(opt.reply, sprintf('{%s}: %s', term, def));
+            this.bot.client.say(opt.reply, sprintf('{%s}: %s', term, def));
           } else {
             this.bot.say_text(opt.reply, 'No definition for %s', term);
           }
@@ -81,7 +81,7 @@ module.exports = {
           }
         });
         if (team_name) {
-          this.bot.main_client.say(opt.reply, sprintf(
+          this.bot.client.say(opt.reply, sprintf(
             'PLAYER %s ON TEAM: %s http://dobrazupa.org/tournament/0.13/clans/%s.html http://dobrazupa.org/tournament/0.13/players/%s.html',
             nick.toUpperCase(),
             team_name,
@@ -98,5 +98,6 @@ module.exports = {
         }
       }
     }
-  }
+  },
+
 };

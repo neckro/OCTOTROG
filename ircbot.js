@@ -7,25 +7,21 @@ var vsprintf = require('sprintf').vsprintf;
 
 var defaults = {
   max_line_length: 300,
-  irc_options: {
+  irc: {
     stripColors: false,
     floodProtection: true
   }
 };
 
-var relaybot = {
+var Bot = {
   create: function(opt) {
-    var bot = Object.create(relaybot);
-
-    bot.plugins = {};
+    var bot = Object.create(Bot);
     extend(true, bot, defaults, opt);
+    bot.irc.channels = [bot.main_channel];
+    bot.plugins = {};
 
     // other default handling
-    bot.relay_nick = bot.relay_nick || bot.main_nick;
-    bot.irc_options.channels = [opt.main_channel];
-    bot.main_client = new irc.Client(bot.main_server, bot.main_nick, bot.irc_options);
-    bot.irc_options.channels = [opt.relay_channel];
-    bot.relay_client = new irc.Client(bot.relay_server, bot.relay_nick, bot.irc_options);
+    bot.client = new irc.Client(bot.server, bot.nick, bot.irc);
 
     // load JSON file
     bot.load_data();
@@ -33,12 +29,11 @@ var relaybot = {
     // load main default plugin
     bot.load_plugin('main');
 
-    Object.keys(bot.main_listeners).forEach(function(l) {
-      bot.main_client.addListener(l, bot.main_listeners[l].bind(bot));
+    // add main listeners
+    Object.keys(bot.listeners).forEach(function(l) {
+      bot.client.addListener(l, bot.listeners[l].bind(bot));
     });
-    Object.keys(bot.relay_listeners).forEach(function(l) {
-      bot.relay_client.addListener(l, bot.relay_listeners[l].bind(bot));
-    });
+
     // TODO: detect nick change?
     return bot;
   },
@@ -110,6 +105,8 @@ var relaybot = {
       plugin.bot = this;
       if (typeof prefix === 'string') plugin.prefix = prefix;
       this.plugins[plugin_file] = plugin;
+      console.log("Loaded plugin " + plugin_file);
+      if (typeof plugin.init === 'function') plugin.init();
       return true;
     } catch (e) {
       // can't find it
@@ -130,7 +127,7 @@ var relaybot = {
     return plugin;
   },
 
-  main_listeners: {
+  listeners: {
     'message': function(nick, to, text, message) {
       var handler = this.get_handler(text);
       if (!handler || typeof handler.command.response !== 'function') return;
@@ -157,16 +154,6 @@ var relaybot = {
     }
   },
 
-  relay_listeners: {
-    'message': function(nick, to, text, message) {
-      this.plugin_any(function(plugin) {
-        if (typeof plugin.relay_listener === 'function') {
-          plugin.relay_listener.call(plugin, nick, to, text);
-        }
-      });
-    }
-  },
-
   say_phrase: function(target, string_key) {
     if (typeof string_key !== 'string' || !this.sayings[string_key]) {
       console.log("GRR INVALID STRING KEY! " + string_key.toString());
@@ -187,7 +174,7 @@ var relaybot = {
       text = this.split_line(text, this.max_line_length);
     }
     text.split("\n").forEach(function(e) {
-      this.main_client.say(target, e);
+      this.client.say(target, e);
     }, this);
   },
 
@@ -253,4 +240,4 @@ var relaybot = {
 
 };
 
-module.exports = relaybot;
+module.exports = Bot;
