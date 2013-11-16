@@ -134,12 +134,12 @@ var Bot = {
       extend(handler, {
         bot: this,
         nick: nick,
-        reply: (to === this.main_nick ? nick : to)
+        reply: (to === this.nick ? nick : to)
       });
       return handler.command.response.call(handler.plugin, handler);
     },
     'join': function(channel, nick, message) {
-      if (nick !== this.main_nick) return;
+      if (nick !== this.nick) return;
       if (channel !== this.main_channel) return;
       if (this.kicked_flag) {
         this.say_phrase(channel, 'kicked');
@@ -150,7 +150,7 @@ var Bot = {
     },
     'kick': function(channel, nick, by, reason, message) {
       // set flag so bot will complain on rejoin
-      if (nick === this.main_nick) this.kicked_flag = true;
+      if (nick === this.nick) this.kicked_flag = true;
     }
   },
 
