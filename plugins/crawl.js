@@ -5,6 +5,8 @@ var extend = require('extend');
 module.exports = {
   name: "crawl",
   prefix: "",
+  relay_bots: ['necKro', 'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'],
+
   init: function() {
     var options = extend({}, this.bot.irc || {}, {
       channels: ['##crawl']
@@ -16,38 +18,126 @@ module.exports = {
       options
     );
     this.relay_client.addListener('message', function(nick, to, text, message) {
-      if ([
-        'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'
-      ].indexOf(nick) === -1) return;
-
-      if (to === this.relay_nick || this.check_watchlist(text)) {
-        this.bot.client.say(this.bot.main_channel, text);
-      }
+      if (this.relay_bots.indexOf(nick) === -1) return;
+      this.parse_crawl_message(text, (to === this.bot.nick));
     }.bind(this));
+    this.relay_client.addListener('error', function() {
+      console.warn('relay client error:', arguments);
+    });
+  },
+
+  destroy: function() {
+    this.removeAllListeners();
+    this.relay_client.disconnect();
+  },
+
+  parse_crawl_message: function(text, privmsg) {
+    var matches, dispatched;
+    // check for player death
+    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?) on (\w+:?\d\d?)( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
+    if (matches !== null) {
+      dispatched = true;
+      this.bot.dispatch('player_death', {
+        text: text,
+        game_id: matches[2],
+        player: matches[5],
+        title: matches[6],
+        level: matches[7],
+        race: matches[8],
+        class: matches[9],
+        god: matches[11],
+        fate: matches[12],
+        location: matches[13],
+        time: matches[16],
+        points: matches[17],
+        turns: matches[18],
+        realtime: matches[19]
+      });
+    }
+
+    // check for player milestone
+    matches = text.match(/^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)\)$/);
+    if (matches !== null) {
+      dispatched = true;
+      this.bot.dispatch('player_milestone', {
+        text: text,
+        player: matches[1],
+        level: matches[2],
+        race: matches[3],
+        class: matches[4],
+        milestone: matches[5],
+        location: matches[6]
+      });
+    }
+
+    // check for player morgue
+    matches = text.match(/^(\d+)\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/);
+    if (matches !== null) {
+      this.bot.dispatch('player_morgue', {
+        text: text,
+        game_id: matches[1],
+        player: matches[2],
+        level: matches[3],
+        race: matches[4],
+        class: matches[5],
+        turns: matches[6],
+        morgue: matches[7]
+      });
+    }
+
+    // Relay all privmsgs that weren't already dispatched
+    if (privmsg && !dispatched) {
+      this.bot.emit('say', false, text);
+    }
+  },
+
+  log_death: function(death) {
+    if (typeof death.time !== 'string') death.time = 'NOW';
+    delete(death.text);
+    delete(death.realtime);
+    this.bot.obj_insert('deaths', death, function(e) {
+      if (e !== null) console.warn('log_death error', arguments);
+    });
   },
 
   relay: function(remote_bot, opt) {
-    opt.params.unshift(opt.action);
-    // TODO: make msg relaying work again
-    this.relay_client.say(remote_bot, opt.params.join(' '));
+    // TODO: use opt.reply to allow privmsgs
+    this.relay_client.say(remote_bot, opt.command + ' ' + opt.params.join(' '));
   },
 
-  get_watchlist: function() {
-    var plugin = this.bot.get_plugin('watchlist');
-    if (!plugin || typeof plugin.get_watchlist !== 'function') return [];
-    return plugin.get_watchlist() || [];
-  },
+  listeners: {
+    'player_death': function(death, privmsg) {
+      var self = this;
+      // Get !lg from Sequell, and set up handler to process the response
+      this.bot.dispatch('check_watchlist', death.player, function(result) {
+        if (result) {
+          self.bot.emit('say', false, death.text);
+          self.once('player_morgue', function(info) {
+            if (!death.game_id) death.game_id = info.game_id;
+            if (death.game_id !== info.game_id) {
+              console.warn("Morgue ID does not match game ID!");
+              return;
+            }
+            death.morgue = info.morgue;
+            self.log_death(death);
+          });
+        }
+        if (privmsg || result) {
+          self.relay('Sequell', {
+            command: '!lg',
+            params: [death.player, death.game_id || '', '-log']
+          });
+        }
+      });
+    },
 
-  check_watchlist: function(text) {
-    // strip number from beginning
-    text = text.toLowerCase().replace(/^[0-9]*\. /, '');
-
-    return this.get_watchlist().some(function(nick) {
-      nick = nick.toString().toLowerCase();
-      if (text.indexOf(nick + ' ') === 0) return true;
-      if (text.indexOf(nick + "'s ghost") > -1) return true;
-      if (text.indexOf('the ghost of ' + nick) > -1) return true;
-    });
+    'player_milestone': function(milestone) {
+      var self = this;
+      this.bot.dispatch('check_watchlist', milestone.player, function(result) {
+        if (result) self.bot.emit('say', false, milestone.text);
+      });
+      // TODO: check for ghost kills
+    }
   },
 
   commands: {

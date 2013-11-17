@@ -4,26 +4,22 @@ var ircbot = require('./ircbot');
 
 var bot, bot_options = {
   server: "irc.lunarnet.org",
-  main_channel: "#octolog",
   nick: "OCTOTROG",
+  main_channel: '#octolog',
   irc: {
     userName: "octotrog",
     realName: "OCTOTROG",
     debug: true,
-    showErrors: true
+    showErrors: true,
   },
-  savefile: './save.json',
-  command_regex: /^[!$?%@]/,
   sayings: {
-    tourney_info: "Tournament ends on Oct 27, 2013 at 20:00 UTC. http://dobrazupa.org/tournament/0.13/overview.html",
     greeting: "kill them all?",
     kicked: irc.colors.wrap('light_red', 'trog vigorously angry.'),
     help: "my commands are: %s. praise be to trog.",
     help_not_available: "no help available for: %s",
-    help_not_found: "command does not exist: %s",
     watched: "i am watching: %s. praise be to trog.",
-    watched_already: "cowardly weakling! i am already watching %s.",
-    unwatched_already: "cowardly weakling! i was not watching %s.",
+    watched_already: "foolish weakling! i am already watching %s.",
+    unwatched_already: "foolish weakling! i was not watching %s.",
     watch_added: "i am now watching %s. praise be to trog.",
     watch_removed: "i have let %s wander from my gaze. praise be to trog."
   },
@@ -37,9 +33,9 @@ if (process.argv[2] === 'test') {
   bot_options.nick = 'TESTTROG';
 }
 
-bot = ircbot.create(bot_options);
+bot = new ircbot(bot_options);
 bot.load_plugin('watchlist');
 bot.load_plugin('crawl');
-bot.load_plugin('octotrog');
+bot.load_plugin('dictionary');
 
 module.exports = bot;
