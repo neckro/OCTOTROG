@@ -142,6 +142,13 @@ module.exports = {
 
   commands: {
     // Sequell
+    "??": {
+      no_space: true,
+      description: "Look up an entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!chars": {
       description: "Lists the frequency of all character types a player started.",
       response: function(opt) {
@@ -282,13 +289,6 @@ module.exports = {
     },
 
     // Henzell
-    "??": {
-      no_space: true,
-      description: "Look up an entry in LearnDB.",
-      response: function(opt) {
-        this.relay('Henzell', opt);
-      }
-    },
     "!abyss": {
       description: "Use with caution.",
       response: function(opt) {
