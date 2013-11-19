@@ -64,7 +64,7 @@ module.exports = {
         var term = opt.msg.trim();
         if (term.length && term.length > 0) {
           this.bot.db.get('SELECT def FROM dictionary WHERE term = ?', term, function(e, r) {
-            if (e === null && typeof r.def === 'string') {
+            if (e === null && r && typeof r.def === 'string') {
               opt.reply(false, '{%s}: %s', term.toUpperCase(), r.def);
             } else {
               opt.reply('No definition for %s', term);

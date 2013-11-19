@@ -6,6 +6,9 @@ module.exports = {
   name: "crawl",
   prefix: "",
   relay_bots: ['necKro', 'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'],
+  morgue_delay_fresh: 5, // Seconds to wait before requesting fresh morgues
+  morgue_delay_moldy: 1, // Seconds to wait before requesting old morgues
+  morgue_timeout: 5, // Max seconds to wait for a morgue response
 
   init: function() {
     var options = extend({}, this.bot.irc || {}, {
@@ -39,19 +42,19 @@ module.exports = {
       dispatched = true;
       this.bot.dispatch('player_death', {
         text: text,
-        game_id: matches[2],
+        result_num: matches[2],
         player: matches[5],
         title: matches[6],
-        level: matches[7],
+        xl: matches[7],
         race: matches[8],
         class: matches[9],
         god: matches[11],
         fate: matches[12],
-        location: matches[13],
-        time: matches[16],
-        points: matches[17],
+        place: matches[13],
+        date: matches[16],
+        score: matches[17],
         turns: matches[18],
-        realtime: matches[19]
+        duration: matches[19]
       }, privmsg);
     }
 
@@ -62,11 +65,11 @@ module.exports = {
       this.bot.dispatch('player_milestone', {
         text: text,
         player: matches[1],
-        level: matches[2],
+        xl: matches[2],
         race: matches[3],
         class: matches[4],
         milestone: matches[5],
-        location: matches[6]
+        place: matches[6]
       }, privmsg);
     }
 
@@ -75,9 +78,9 @@ module.exports = {
     if (matches !== null) {
       this.bot.dispatch('player_morgue', {
         text: text,
-        game_id: matches[1],
+        result_num: matches[1],
         player: matches[3],
-        level: matches[4],
+        xl: matches[4],
         race: matches[5],
         class: matches[6],
         turns: matches[7],
@@ -92,9 +95,8 @@ module.exports = {
   },
 
   log_death: function(death) {
-    if (typeof death.time !== 'string') death.time = 'NOW';
     delete(death.text);
-    delete(death.realtime);
+    delete(death.result_num);
     this.bot.obj_insert('deaths', death, function(e) {
       if (e !== null) console.warn('log_death error', arguments);
     });
@@ -110,23 +112,44 @@ module.exports = {
       var self = this;
       // Get !lg from Sequell, and set up handler to process the response
       this.bot.dispatch('check_watchlist', death.player, function(watched) {
-        if (watched) {
-          self.once('player_morgue', function(info) {
-            if (!death.game_id) death.game_id = info.game_id;
-            if (death.game_id !== info.game_id) {
-              console.warn("Morgue ID does not match game ID!");
-              return;
-            }
-            death.morgue = info.morgue;
-            self.log_death(death);
-          });
-        }
         if (privmsg || watched) {
           self.bot.emit('say', false, death.text);
-          self.relay('Sequell', {
-            command: '!lg',
-            params: [death.player, death.game_id || '', '-log']
-          });
+
+          // Wait to request morgue
+          var delay = death.result_num ? self.morgue_delay_moldy : self.morgue_delay_fresh;
+          setTimeout(function() {
+            var dispatch_time = Date.now();
+            if (watched) {
+              // Set handler to catch morgue info
+              self.once('player_morgue', function(info) {
+                // Check for timeout
+                if ((Date.now() - dispatch_time) > self.morgue_timeout * 1000) return;
+                // Make sure info matches
+                if (['player', 'race', 'class', 'turns'].some(function(c) {
+                  return (death[c] !== info[c]);
+                })) {
+                  console.warn("morgue data doesn't match!", death, info);
+                  return;
+                }
+                death.morgue = info.morgue;
+                self.log_death(death);
+              });
+            }
+
+            // Request morgue
+            self.relay('Sequell', {
+              command: '!lg',
+              params: [
+                death.player,
+                death.race + death.class,
+                'xl=' + death.xl,
+                'turns=' + death.turns,
+                'score=' + death.score,
+                '-log'
+              ]
+            });
+
+          }, delay * 1000);
         }
       });
     },

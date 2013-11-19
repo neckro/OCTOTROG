@@ -1,18 +1,19 @@
 CREATE TABLE IF NOT EXISTS deaths (
-  game_id INTEGER,
   player TEXT,
   title TEXT,
-  level INTEGER,
+  xl INTEGER,
   race CHAR(2),
   class CHAR(2),
   god TEXT,
   fate TEXT,
-  location TEXT,
-  time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  points INTEGER,
+  place TEXT,
+  date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  score INTEGER,
   turns INTEGER,
   morgue TEXT,
-  PRIMARY KEY (game_id, player)
+  duration TEXT,
+  UNIQUE (player, race, class, xl, turns)
+  ON CONFLICT REPLACE
 );
 
 CREATE TABLE IF NOT EXISTS watchlist (
