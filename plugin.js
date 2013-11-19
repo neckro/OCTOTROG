@@ -58,12 +58,14 @@ var Listeners = {
       if (input.indexOf(c) === 0) {
         // Found a match
         handler = h.response;
+        var params = text.substr(c.length).trim().split(' ');
+        if (params[0] === '') params = [];
         opt = {
           command: c.trim(),
           msg: text.substr(c.length).trim(),
           nick: nick,
           text: text.trim(),
-          params: text.substr(c.length).trim().split(' ')
+          params: params
         };
       }
     });
