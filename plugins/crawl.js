@@ -71,17 +71,17 @@ module.exports = {
     }
 
     // check for player morgue
-    matches = text.match(/^(\d+)\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/);
+    matches = text.match(/^(\d+)(\/\d+)?\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/);
     if (matches !== null) {
       this.bot.dispatch('player_morgue', {
         text: text,
         game_id: matches[1],
-        player: matches[2],
-        level: matches[3],
-        race: matches[4],
-        class: matches[5],
-        turns: matches[6],
-        morgue: matches[7]
+        player: matches[3],
+        level: matches[4],
+        race: matches[5],
+        class: matches[6],
+        turns: matches[7],
+        morgue: matches[8]
       });
     }
 
