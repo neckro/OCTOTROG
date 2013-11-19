@@ -52,7 +52,7 @@ module.exports = {
         points: matches[17],
         turns: matches[18],
         realtime: matches[19]
-      });
+      }, privmsg);
     }
 
     // check for player milestone
@@ -67,7 +67,7 @@ module.exports = {
         class: matches[4],
         milestone: matches[5],
         location: matches[6]
-      });
+      }, privmsg);
     }
 
     // check for player morgue
@@ -109,9 +109,8 @@ module.exports = {
     'player_death': function(death, privmsg) {
       var self = this;
       // Get !lg from Sequell, and set up handler to process the response
-      this.bot.dispatch('check_watchlist', death.player, function(result) {
-        if (result) {
-          self.bot.emit('say', false, death.text);
+      this.bot.dispatch('check_watchlist', death.player, function(watched) {
+        if (watched) {
           self.once('player_morgue', function(info) {
             if (!death.game_id) death.game_id = info.game_id;
             if (death.game_id !== info.game_id) {
@@ -122,7 +121,8 @@ module.exports = {
             self.log_death(death);
           });
         }
-        if (privmsg || result) {
+        if (privmsg || watched) {
+          self.bot.emit('say', false, death.text);
           self.relay('Sequell', {
             command: '!lg',
             params: [death.player, death.game_id || '', '-log']
@@ -131,10 +131,10 @@ module.exports = {
       });
     },
 
-    'player_milestone': function(milestone) {
+    'player_milestone': function(milestone, privmsg) {
       var self = this;
-      this.bot.dispatch('check_watchlist', milestone.player, function(result) {
-        if (result) self.bot.emit('say', false, milestone.text);
+      this.bot.dispatch('check_watchlist', milestone.player, function(watched) {
+        if (watched || privmsg) self.bot.emit('say', false, milestone.text);
       });
       // TODO: check for ghost kills
     }
