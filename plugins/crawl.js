@@ -6,7 +6,7 @@ module.exports = {
   name: "crawl",
   prefix: "",
   relay_bots: ['necKro', 'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'],
-  morgue_delay_fresh: 5, // Seconds to wait before requesting fresh morgues
+  morgue_delay_fresh: 20, // Seconds to wait before requesting fresh morgues
   morgue_delay_moldy: 1, // Seconds to wait before requesting old morgues
   morgue_timeout: 5, // Max seconds to wait for a morgue response
 
@@ -37,7 +37,7 @@ module.exports = {
   parse_crawl_message: function(text, privmsg) {
     var matches, dispatched;
     // check for player death
-    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?) on (\w+:?\d\d?)( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
+    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( on (\w+:?\d\d?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
     if (matches !== null) {
       dispatched = true;
       this.bot.dispatch('player_death', {
@@ -50,11 +50,11 @@ module.exports = {
         class: matches[9],
         god: matches[11],
         fate: matches[12],
-        place: matches[13],
-        date: matches[16],
-        score: matches[17],
-        turns: matches[18],
-        duration: matches[19]
+        place: matches[14],
+        date: matches[17],
+        score: matches[18],
+        turns: matches[19],
+        duration: matches[20]
       }, privmsg);
     }
 
