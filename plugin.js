@@ -53,6 +53,7 @@ var Listeners = {
   'message': function(nick, to, text, message) {
     // Check for command handlers
     var handler, opt;
+    text = text.toString().trim();
     var input = text + ' ';
     foreach(this.command_map, function(h, c) {
       if (input.indexOf(c) === 0) {
