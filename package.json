@@ -11,7 +11,8 @@
     "extend": "~1.2.1",
     "sprintf": "~0.1.2",
     "foreach": "~2.0.4",
-    "sqlite3": "~2.1.19"
+    "sqlite3": "~2.1.19",
+    "offer": "~1.0.1"
   },
   "engines": {
     "node": "~0.10.20"

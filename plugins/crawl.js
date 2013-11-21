@@ -1,14 +1,17 @@
 "use strict";
 var irc = require('irc');
+var offer = require('offer');
 var extend = require('extend');
 
 module.exports = {
   name: "crawl",
   prefix: "",
-  relay_bots: ['necKro', 'Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell'],
-  morgue_delay_fresh: 20, // Seconds to wait before requesting fresh morgues
-  morgue_delay_moldy: 1, // Seconds to wait before requesting old morgues
-  morgue_timeout: 5, // Max seconds to wait for a morgue response
+  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro'],
+  morgue_delay_fresh: 10 * 1000, // ms to wait before requesting fresh morgues
+  morgue_delay_moldy: 1 * 1000, // ms to wait before requesting old morgues
+  morgue_timeout: 10 * 1000, // Max ms to wait for a morgue response
+  morgue_retry_delay: 10 * 1000, // Delay between morgue retries
+  morgue_retry_limit: 6, // Max number of times to try getting morgue
 
   init: function() {
     var options = extend({}, this.bot.irc || {}, {
@@ -88,6 +91,21 @@ module.exports = {
       });
     }
 
+    // check for failed morgue request
+    matches = text.match(/^No games for (\w+) \((\w\w)(\w\w) xl=(\d\d?) turns=(\d+) score=(\d+)\)\.$/);
+    if (matches !== null) {
+      this.bot.dispatch('player_morgue_failed', {
+        player: matches[1],
+        race: matches[2],
+        class: matches[3],
+        xl: matches[4],
+        turns: matches[5],
+        score: matches[6]
+      });
+      // Don't relay the message
+      return;
+    }
+
     // Relay all privmsgs that weren't already dispatched
     if (privmsg && !dispatched) {
       this.bot.emit('say', false, text);
@@ -113,30 +131,45 @@ module.exports = {
       // Get !lg from Sequell, and set up handler to process the response
       this.bot.dispatch('check_watchlist', death.player, function(watched) {
         if (privmsg || watched) {
-          self.bot.emit('say', false, death.text);
+          if (!death.morgue) self.bot.emit('say', false, death.text);
 
           // Wait to request morgue
           var delay = death.result_num ? self.morgue_delay_moldy : self.morgue_delay_fresh;
           setTimeout(function() {
-            var dispatch_time = Date.now();
+
             if (watched) {
               // Set handler to catch morgue info
-              self.once('player_morgue', function(info) {
-                // Check for timeout
-                if ((Date.now() - dispatch_time) > self.morgue_timeout * 1000) return;
+              var cancelMorgue = self.listen(self.morgue_timeout, 'player_morgue', function(info) {
                 // Make sure info matches
                 if (['player', 'race', 'class', 'turns'].some(function(c) {
                   return (death[c] !== info[c]);
-                })) {
-                  console.warn("morgue data doesn't match!", death, info);
-                  return;
-                }
+                })) return;
                 death.morgue = info.morgue;
                 self.log_death(death);
+                cancelMorgue();
+              });
+
+              // Stash morgue retry count in death object,
+              // will be overwritten when request is successful
+              death.morgue = (death.morgue || 0) + 1;
+              // Set handler to catch failed morgue request
+              var cancelMorgueFailure = self.listen(self.morgue_timeout, 'player_morgue_failed', function(info) {
+                // Make sure info matches
+                if (['player', 'race', 'class', 'xl', 'turns', 'score'].some(function(c) {
+                  return (death[c] !== info[c]);
+                })) return;
+                cancelMorgueFailure();
+                if (death.morgue < self.morgue_retry_limit) {
+                  // Try again in a little bit
+                  setTimeout(function() {
+                    self.bot.dispatch('player_death', death);
+                  }, self.morgue_retry_delay);
+                } else {
+                  self.bot.emit('say', "couldn't retrieve morgue for player %s.", death.player);
+                }
               });
             }
-
-            // Request morgue
+            // Do the initial request
             self.relay('Sequell', {
               command: '!lg',
               params: [
@@ -148,8 +181,7 @@ module.exports = {
                 '-log'
               ]
             });
-
-          }, delay * 1000);
+          }, delay);
         }
       });
     },

@@ -1,6 +1,7 @@
 // Plugin prototype
 "use strict";
 var util = require('util');
+var offer = require('offer');
 var events = require('events');
 var extend = require('extend');
 var foreach = require('foreach');
@@ -43,7 +44,32 @@ extend(Plugin.prototype, {
       if (!c.no_space) trigger += ' ';
       if (typeof c.response === 'function') command_map[trigger] = c;
     });
+  },
+
+  /* Arguments:
+      - lifetime in ms (optional)
+      - event name
+      - event handler
+      - timeout handler
+  */
+  listen: function() {
+    var lifetime, self = this;
+    var args = Array.prototype.slice.apply(arguments);
+    if (typeof arguments[0] === 'number') lifetime = args.shift();
+    var event = args.shift();
+    var handler = args.shift();
+    var timeoutHandler = args.shift();
+    var cancel = offer.on(this, event, handler);
+    if (lifetime) {
+      setTimeout(function() {
+        if (self.bot.debug) console.log('Listener for event ' + event + ' timed out.');
+        cancel();
+        if (typeof timeoutHandler === 'function') timeoutHandler.call(self);
+      }, lifetime);
+    }
+    return cancel;
   }
+
 });
 
 var Listeners = {
