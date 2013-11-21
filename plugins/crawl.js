@@ -172,10 +172,29 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!abyss": {
+      description: "Use with caution.",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sequell', opt);
+      }
+    },
+    "!apt": {
+      description: "Looks up aptitudes for specified race/skill combination.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!chars": {
       description: "Lists the frequency of all character types a player started.",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sequell', opt);
+      }
+    },
+    "!ftw": {
+      description: "Abbreviates race/role abbreviations. Example usage: !ftw Troll Berserker",
+      response: function(opt) {
         this.relay('Sequell', opt);
       }
     },
@@ -276,6 +295,12 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!rng": {
+      description: "Chooses randomly between its (space-separated) arguments. Accepts @god, @char, @role, and @race special arguments. Prefixing the special argument with 'good' or 'bad' limits the choices to only unrestricted or only restricted combos, respectively. @role=<role> or @race=<race> chooses a random combo with the specified role/race.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!streak": {
       description: "Show's a player's winning streak (or lack thereof).",
       response: function(opt) {
@@ -310,37 +335,18 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!wtf": {
+      description: "Expands race/role abbreviations. Example usage: !wtf TrBe",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
 
     // Henzell
-    "!abyss": {
-      description: "Use with caution.",
-      response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
-        this.relay('Henzell', opt);
-      }
-    },
-    "!apt": {
-      description: "Looks up aptitudes for specified race/skill combination.",
-      response: function(opt) {
-        this.relay('Henzell', opt);
-      }
-    },
     "!dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.akrasiac.org)",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
-        this.relay('Henzell', opt);
-      }
-    },
-    "!ftw": {
-      description: "Abbreviates race/role abbreviations. Example usage: !ftw Troll Berserker",
-      response: function(opt) {
-        this.relay('Henzell', opt);
-      }
-    },
-    "!rng": {
-      description: "Chooses randomly between its (space-separated) arguments. Accepts @god, @char, @role, and @race special arguments. Prefixing the special argument with 'good' or 'bad' limits the choices to only unrestricted or only restricted combos, respectively. @role=<role> or @race=<race> chooses a random combo with the specified role/race.",
-      response: function(opt) {
         this.relay('Henzell', opt);
       }
     },
@@ -354,12 +360,6 @@ module.exports = {
       description: "Lists where a player currently is in the dungeon. (crawl.akrasiac.org)",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
-        this.relay('Henzell', opt);
-      }
-    },
-    "!wtf": {
-      description: "Expands race/role abbreviations. Example usage: !wtf TrBe",
-      response: function(opt) {
         this.relay('Henzell', opt);
       }
     },
