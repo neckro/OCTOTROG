@@ -303,8 +303,15 @@ module.exports = {
     "!locateall": {
       description: "Shows who is currently playing.  Give a nick to show only that player.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(this.get_watchlist().join('|'));
-        this.relay('Sequell', opt);
+        var self = this;
+        if (opt.params.length === 0) {
+          this.bot.dispatch('get_watchlist', function(watchlist) {
+            opt.params.push(watchlist.join('|'));
+            self.relay('Sequell', opt);
+          });
+        } else {
+          self.relay('Sequell', opt);
+        }
       }
     },
     "!log": {

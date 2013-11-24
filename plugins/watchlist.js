@@ -66,6 +66,10 @@ module.exports = {
   listeners: {
     'check_watchlist': function(name, callback) {
       callback(this.check_watchlist(name));
+    },
+    'get_watchlist': function(callback) {
+      if (typeof this.watchlist !== 'object') return;
+      callback(Object.keys(this.watchlist));
     }
   },
 
