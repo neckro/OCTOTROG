@@ -1,17 +1,17 @@
 CREATE TABLE IF NOT EXISTS deaths (
+  score INTEGER,
   player TEXT,
-  title TEXT,
-  xl INTEGER,
   race CHAR(2),
   class CHAR(2),
+  title TEXT,
   god TEXT,
-  fate TEXT,
   place TEXT,
-  date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  score INTEGER,
+  fate TEXT,
+  xl INTEGER,
   turns INTEGER,
-  morgue TEXT,
+  date DATETIME DEFAULT CURRENT_TIMESTAMP,
   duration TEXT,
+  morgue TEXT,
   UNIQUE (player, race, class, xl, turns)
   ON CONFLICT REPLACE
 );
