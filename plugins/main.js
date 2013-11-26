@@ -23,7 +23,7 @@ module.exports = {
         if (typeof helpcmd === 'string') helpcmd = helpcmd.trim().toLowerCase();
         var response;
         var cmds = [];
-        this.bot.each_plugin(function() {
+        opt.bot.each_plugin(function() {
           foreach(this.command_map, function(o, c) {
             c = c.trim();
             if (c.toLowerCase() === helpcmd) response = o.description;
@@ -40,5 +40,4 @@ module.exports = {
       }
     }
   }
-
 };

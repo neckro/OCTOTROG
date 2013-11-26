@@ -17,13 +17,12 @@ module.exports = {
         }
         var term = (parsed[4] || parsed[3]).toLowerCase();
         var def = parsed[5];
-        this.bot.db.run('REPLACE INTO dictionary (term, def) VALUES (?, ?)', term, def, function(e) {
-          if (e === null) {
-            opt.reply('Trog save entry for %s.', term);
-          } else {
-            console.warn('dbadd error:', e);
-            opt.reply('Trog have enraging problem saving entry for %s.', term);
-          }
+        this.dispatch('db_run', 'REPLACE INTO dictionary (term, def) VALUES (?, ?)', term, def)
+        .then(function(v) {
+          opt.reply('Trog save entry for %s.', term);
+        })
+        .catch(function(e) {
+          opt.reply_phrase('database_error');
         });
       }
     },
@@ -31,29 +30,29 @@ module.exports = {
       description: "Remove an entry from the database.",
       response: function(opt) {
         var term = opt.msg.toLowerCase();
-        this.bot.db.run('DELETE FROM dictionary WHERE term = ?', opt.msg, function(e) {
-          if (e === null) {
-            opt.reply('Trog destroy entry for %s.', term);
-          } else {
-            console.warn('dbremove error:', e);
-            opt.reply('Trog no see entry for %s.', term);
-          }
+        this.dispatch('db_run', 'DELETE FROM dictionary WHERE term = ?', opt.msg)
+        .then(function(v) {
+          opt.reply('Trog destroy entry for %s.', term);
+        })
+        .catch(function(e) {
+          opt.reply_phrase('database_error');
         });
       }
     },
     "!dblist": {
       description: "List all terms in the database.",
       response: function(opt) {
-        this.bot.db.all('SELECT term FROM dictionary ORDER BY term', function(e, result) {
+        this.dispatch('db_call', 'all', 'SELECT term FROM dictionary ORDER BY term')
+        .then(function(v) {
+          if (v.length === 0) return;
           var terms = '';
-          if (e !== null) {
-            console.warn('dblist error:', e);
-            return;
-          }
-          foreach(result, function(r) {
+          foreach(v, function(r) {
             if (typeof r.term === 'string') terms += '{' + r.term + '} ';
           });
           opt.reply(terms);
+        })
+        .catch(function(e) {
+          opt.reply_phrase('database_error');
         });
       }
     },
@@ -63,12 +62,16 @@ module.exports = {
       response: function(opt) {
         var term = opt.msg.trim();
         if (term.length && term.length > 0) {
-          this.bot.db.get('SELECT def FROM dictionary WHERE term = ?', term, function(e, r) {
-            if (e === null && r && typeof r.def === 'string') {
-              opt.reply(false, '{%s}: %s', term.toUpperCase(), r.def);
+          this.dispatch('db_call', 'get', 'SELECT def FROM dictionary WHERE term = ?', term)
+          .then(function(v) {
+            if (v && typeof v.def === 'string') {
+              opt.reply(false, '{%s}: %s', term.toUpperCase(), v.def);
             } else {
-              opt.reply('No definition for %s', term);
+              opt.reply('No definition for {%s}', term);
             }
+          })
+          .catch(function(e) {
+            opt.reply_phrase('database_error');
           });
         }
       }

@@ -2,31 +2,93 @@
 var irc = require('irc');
 var offer = require('offer');
 var extend = require('extend');
+var foreach = require('foreach');
+var Promise = require('bluebird');
 
 module.exports = {
   name: "crawl",
   prefix: "",
+
+  // Listen for these nicks
   relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell', 'Rotatelljr'],
-  relay_servers: ['Sequell', 'CAO', 'CDO', 'CSZO', 'CLAN', 'neckro', 'CBRO', 'CBRO-mundane'],
-  morgue_delay_fresh: 10 * 1000, // ms to wait before requesting fresh morgues
-  morgue_delay_moldy: 1 * 1000, // ms to wait before requesting old morgues
-  morgue_timeout: 10 * 1000, // Max ms to wait for a morgue response
-  morgue_retry_delay: 10 * 1000, // Delay between morgue retries
-  morgue_retry_limit: 6, // Max number of times to try getting morgue
+  // Max ms to wait for game info
+  info_timeout: 10 * 1000,
+  // Delay between game info requests
+  info_retry_delay: 10 * 1000,
+  // Max number of times to retry game info request
+  info_retry_limit: 6,
+
+  // IRC options
+  relay_nick: 'OCTOTROG',
+  relay_server: 'irc.freenode.net',
+  relay_channel: '##crawl',
+
+  parsers: [
+    {
+      event: 'player_death',
+      regex: /^((\d+)(\/\d+)?(\. ))?(\[([^\]]+)\] )?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/,
+      mapping: {
+        result_num: 2,
+        extra_info: 6,
+        player: 7,
+        title: 8,
+        xl: 9,
+        race: 10,
+        class: 11,
+        god: 13,
+        fate: 14,
+        place: 16,
+        date: 20,
+        score: 21,
+        turns: 22,
+        duration: 23
+      }
+    }, {
+      event: 'player_milestone',
+      regex: /^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)\)$/,
+      mapping: {
+        player: 1,
+        xl: 2,
+        race: 3,
+        class: 4,
+        milestone: 5,
+        place: 6
+      }
+    }, {
+      event: 'player_morgue',
+      regex: /^(\d+)(\/\d+)?\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/,
+      mapping:  {
+        result_num: 1,
+        player: 3,
+        xl: 4,
+        race: 5,
+        class: 6,
+        turns: 7,
+        morgue: 8
+      }
+    }, {
+      event: 'player_morgue_failed',
+      regex: /^No games for (\w+) \((\w\w)(\w\w) xl=(\d\d?) turns=(\d+) score=(\d+)\)\.$/,
+      mapping: {
+        player: 1,
+        race: 2,
+        class: 3,
+        xl: 4,
+        turns: 5,
+        score: 6
+      }
+    }
+  ],
 
   init: function() {
     var options = extend({}, this.bot.irc || {}, {
       channels: ['##crawl']
     });
     this.relay_nick = this.bot.relay_nick || this.bot.nick || 'OCTOTROG';
-    this.relay_client = new irc.Client(
-      this.bot.relay_server || 'chat.freenode.net',
-      this.relay_nick,
-      options
-    );
+    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, extend({}, this.bot.irc, { channels: [this.relay_channel] }));
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (this.relay_bots.indexOf(nick) === -1) return;
-      this.parse_crawl_message(text, (to === this.bot.nick), this.relay_servers[this.relay_bots.indexOf(nick)]);
+      this.emitP('crawl_event', text, nick, (to === this.bot.nick));
     }.bind(this));
     this.relay_client.addListener('error', function() {
       console.warn('relay client error:', arguments);
@@ -38,161 +100,142 @@ module.exports = {
     this.relay_client.disconnect();
   },
 
-  parse_crawl_message: function(text, privmsg, server) {
-    var matches, dispatched;
-    // check for player death
-    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
-    if (matches !== null) {
-      dispatched = true;
-      this.bot.dispatch('player_death', {
-        text: text,
-        result_num: matches[2],
-        player: matches[5],
-        title: matches[6],
-        xl: matches[7],
-        race: matches[8],
-        class: matches[9],
-        god: matches[11],
-        fate: matches[12],
-        place: matches[14],
-        date: matches[18],
-        score: matches[19],
-        turns: matches[20],
-        duration: matches[21]
-      }, privmsg, server);
-    }
-
-    // check for player milestone
-    matches = text.match(/^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)\)$/);
-    if (matches !== null) {
-      dispatched = true;
-      this.bot.dispatch('player_milestone', {
-        text: text,
-        player: matches[1],
-        xl: matches[2],
-        race: matches[3],
-        class: matches[4],
-        milestone: matches[5],
-        place: matches[6]
-      }, privmsg, server);
-    }
-
-    // check for player morgue
-    matches = text.match(/^(\d+)(\/\d+)?\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/);
-    if (matches !== null) {
-      this.bot.dispatch('player_morgue', {
-        text: text,
-        result_num: matches[1],
-        player: matches[3],
-        xl: matches[4],
-        race: matches[5],
-        class: matches[6],
-        turns: matches[7],
-        morgue: matches[8]
-      });
-    }
-
-    // check for failed morgue request
-    matches = text.match(/^No games for (\w+) \((\w\w)(\w\w) xl=(\d\d?) turns=(\d+) score=(\d+)\)\.$/);
-    if (matches !== null) {
-      this.bot.dispatch('player_morgue_failed', {
-        player: matches[1],
-        race: matches[2],
-        class: matches[3],
-        xl: matches[4],
-        turns: matches[5],
-        score: matches[6]
-      });
-      // Don't relay the message
-      return;
-    }
-
-    // Relay all privmsgs that weren't already dispatched
-    if (privmsg && !dispatched && server !== 'CBRO-mundane') {
-      this.bot.emit('say', false, text + ' (' + server + ')');
-    }
-  },
-
-  log_death: function(death) {
-    delete(death.text);
-    delete(death.result_num);
-    this.bot.obj_insert('deaths', death, function(e) {
-      if (e !== null) console.warn('log_death error', arguments);
-    });
-  },
-
   relay: function(remote_bot, opt) {
-    // TODO: use opt.reply to allow privmsgs
-    this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
   },
 
   listeners: {
-    'player_death': function(death, privmsg, server) {
-      var self = this;
-      // Get !lg from Sequell, and set up handler to process the response
-      this.bot.dispatch('check_watchlist', death.player, function(watched) {
-        if (privmsg || watched) {
-          if (!death.morgue) self.bot.emit('say', false, death.text + ' (' + server + ')');
+    'crawl_event': function(deferred, text, from, privmsg) {
+      // Recieved a message from a bot!  Do something about it.
+      var event, info = {
+        text: text,
+        from: from,
+        privmsg: privmsg
+      };
 
-          // Wait to request morgue
-          var delay = death.result_num ? self.morgue_delay_moldy : self.morgue_delay_fresh;
-          setTimeout(function() {
-
-            if (watched) {
-              // Set handler to catch morgue info
-              var cancelMorgue = self.listen(self.morgue_timeout, 'player_morgue', function(info) {
-                // Make sure info matches
-                if (['player', 'race', 'class', 'turns'].some(function(c) {
-                  return (death[c] !== info[c]);
-                })) return;
-                death.morgue = info.morgue;
-                self.log_death(death);
-                cancelMorgue();
-              });
-
-              // Stash morgue retry count in death object,
-              // will be overwritten when request is successful
-              death.morgue = (death.morgue || 0) + 1;
-              // Set handler to catch failed morgue request
-              var cancelMorgueFailure = self.listen(self.morgue_timeout, 'player_morgue_failed', function(info) {
-                // Make sure info matches
-                if (['player', 'race', 'class', 'xl', 'turns', 'score'].some(function(c) {
-                  return (death[c] !== info[c]);
-                })) return;
-                cancelMorgueFailure();
-                if (death.morgue < self.morgue_retry_limit) {
-                  // Try again in a little bit
-                  setTimeout(function() {
-                    self.bot.dispatch('player_death', death);
-                  }, self.morgue_retry_delay);
-                } else {
-                  self.bot.emit('say', "couldn't retrieve morgue for player %s.", death.player + ' (' + server + ')');
-                }
-              });
-            }
-            // Do the initial request
-            self.relay('Sequell', {
-              command: '!lg',
-              params: [
-                death.player,
-                death.race + death.class,
-                'xl=' + death.xl,
-                'turns=' + death.turns,
-                'score=' + death.score,
-                '-log'
-              ]
-            });
-          }, delay);
-        }
+      // Check the parsers for first event match
+      this.parsers.some(function(p) {
+        var matches = text.match(p.regex);
+        if (matches === null) return;
+        event = p.event;
+        foreach(p.mapping, function(i, n) {
+          info[n] = matches[i];
+        });
+        return true;
       });
+
+      if (event) {
+        deferred.resolve(this.emitP(event, info));
+      } else {
+        // No event to dispatch!
+        // Relay the text anyways if appropriate
+        if (privmsg) this.say(false, '<%s> %s', from, text);
+        deferred.reject();
+      }
     },
 
-    'player_milestone': function(milestone, privmsg, server) {
-      var self = this;
-      this.bot.dispatch('check_watchlist', milestone.player, function(watched) {
-        if (watched) self.bot.emit('say', false, milestone.text + ' (' + server + ')');
+    'get_gameinfo': function(deferred, info, query, info_type, retries) {
+      retries = retries || 0;
+      // Request the game info
+      this.relay('Sequell', {
+        command: '!lg',
+        params: [
+          info.player,
+          info.race + info.class,
+          'xl=' + info.xl,
+          'turns=' + info.turns,
+          'score=' + info.score,
+          query
+        ]
       });
-      // TODO: check for ghost kills
+      var promise = (this.queueExpect(info_type, info)
+      .bind(this)
+      .timeout(this.info_timeout)
+      .catch(Promise.TimeoutError, function() {
+        if (retries < this.info_retry_limit) {
+          return (
+            Promise.delay(this.info_retry_delay)
+            .bind(this)
+            .then(function() {
+              return this.emitP('get_gameinfo', info, query, info_type, ++retries);
+            })
+          );
+        } else {
+          // Retry limit reached!
+          this.say('Cannot retrieve additional info for player: %s', info.player);
+        }
+      }));
+      deferred.resolve(promise);
+      return promise;
+    },
+
+    'player_death': function(deferred, info) {
+      // Check resolution queue
+      if (this.queueCompare('player_death', info,
+        ['player', 'race', 'class', 'xl', 'turns', 'score']
+      )) return;
+
+      // Check watchlist
+      deferred.resolve(this.dispatch('check_watchlist', info.player)
+      .bind(this)
+      .then(function(watched) {
+        // Relay death event to channel if appropriate
+        if (watched || info.privmsg) {
+          this.say(false, '<%s> %s', info.from, info.text);
+        } else {
+          // Stop event resolution, we don't care about this death event
+          throw "Not giving a fuck.";
+        }
+        return Promise.all([
+          this.emitP('get_gameinfo', info, '-log', 'player_morgue')
+          .get('morgue'),
+          this.emitP('get_gameinfo', info, 'x=src,gid,id,v', 'player_death')
+          .get('extra_info')
+          .then(function(v) {
+              // Parse the extra info
+              var out = {};
+              v.split(';').forEach(function(e) {
+                var p = e.split('=');
+                if (p.length === 2) out[p[0]] = p[1];
+              });
+              return out;
+            })
+        ]);
+      })
+      .spread(function(morgue, extra_info) {
+        extend(info, extra_info, { morgue: morgue });
+        this.say(false,
+          "server: %s; id: %s; version: %s; morgue: %s",
+          info.src,
+          info.id,
+          info.v,
+          info.morgue
+        );
+        // Log everything to the database
+        this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
+        .bind(this)
+        .catch(function(e) {
+          this.say_phrase('database_error', e);
+        });
+      }));
+    },
+
+    'player_morgue': function(deferred, info) {
+      if (this.queueCompare('player_morgue', info,
+        ['player', 'race', 'class', 'xl', 'turns', 'score']
+      )) return;
+    },
+
+    'player_milestone': function(deferred, info) {
+      this.dispatch('check_watchlist', info.player)
+      .bind(this)
+      .then(function(watched) {
+        if (watched || info.privmsg) {
+          this.say(false, '<%s> %s', info.from, info.text);
+        }
+      });
+      // TODO: check for ghost kills?
+      // TODO: log milestones in database?
     }
   },
 

@@ -5,17 +5,18 @@ var path = require('path');
 var util = require('util');
 var events = require('events');
 var extend = require('extend');
-var sqlite3 = require('sqlite3');
 var foreach = require('foreach');
 var sprintf = require('sprintf');
 var vsprintf = sprintf.vsprintf;
+var Promise = require('bluebird');
 var Plugin = require('./plugin');
 
+var dispatch_timeout = 30000;
+
 var defaults = {
-  debug: false,
+  debug: true,
   plugin_path: './plugins',
-  db_path: './db/save.db',
-  max_line_length: 300,
+  max_line_length: 360,
   irc: {
     stripColors: false,
     floodProtection: true,
@@ -48,34 +49,33 @@ extend(Bot.prototype, {
     // load main default plugin
     this.load_plugin('main');
     // initialize database
-    this.db = new (sqlite3.verbose().Database)(this.db_path);
-    this.db.addListener('error', function(e) {
-      console.warn('db error', e);
-    });
   },
 
-  load_plugin: function(name, callback) {
+  load_plugin: function(name, options) {
     try {
+      options = options || {};
       var plugin_file = path.basename(name, '.js');
-      require.resolve(this.plugin_path + '/' + plugin_file);
+      var plugin_path = this.plugin_path + '/' + plugin_file;
+      require.resolve(plugin_path);
       // purge Node's require cache to force the file to be reloaded
       Object.keys(require.cache).forEach(function(c) {
         if (path.basename(c, '.js') === plugin_file) {
           delete require.cache[c];
         }
       });
-      var plugin_module = require(this.plugin_path + '/' + plugin_file);
+      var plugin_module = require(plugin_path);
       if (typeof this.plugins[plugin_file] === 'object') {
         // Do cleanup on existing plugin
         this.plugins[plugin_file].destroy();
         delete this.plugins[plugin_file];
       }
-      var plugin_instance = new Plugin(this, plugin_module);
+      var plugin_instance = new Plugin(this, plugin_module, options);
+      plugin_instance.bind_channels(options.channels || this.main_channel);
       console.log("Loaded plugin " + plugin_file);
-      if (typeof callback === 'function') callback.call(plugin_instance, this);
       this.plugins[plugin_file] = plugin_instance;
       return true;
     } catch (e) {
+      console.log(e);
       // can't find plugin file
       console.warn("Warning: Can't find plugin " + plugin_file);
       return false;
@@ -83,18 +83,22 @@ extend(Bot.prototype, {
   },
 
   // Emit an event to all plugins
+  // Returns a race promise with a timeout
   dispatch: function() {
     if (this.debug) console.log('dispatch', arguments[0]);
-    var args = Array.prototype.slice.call(arguments);
+    var args = arguments;
+    var promise_queue = [];
     this.each_plugin(function() {
-      this.emit.apply(this, args);
+      promise_queue.push(this.emitP.apply(this, args));
     });
+    return Promise.race(promise_queue);
   },
 
   // Iterate all plugins with a callback
   each_plugin: function(callback) {
+    var args = Array.prototype.slice.call(arguments, 1);
     foreach(this.plugins, function(p) {
-      callback.call(p);
+      callback.apply(p, args);
     });
   },
 
@@ -113,7 +117,7 @@ extend(Bot.prototype, {
     if (typeof transform === 'function') {
       text = this.say_transform(text);
     }
-    this.client.say(target, text);
+    this.client.say(target, this.split_line(text, this.max_line_length));
   },
 
   say_phrase: function(target, string_key) {
@@ -125,7 +129,6 @@ extend(Bot.prototype, {
     return this.say.apply(this, arguments);
   },
 
-  // No longer used
   split_line: function(text, length) {
     var out = '', pos;
     if (!length || typeof text !== 'string') return;
@@ -140,49 +143,38 @@ extend(Bot.prototype, {
     return out;
   },
 
-  obj_insert: function(table, o, callback) {
-    var keys = [], placeholders = [], values = [];
-    var c = 1;
-    Object.keys(o).forEach(function(k) {
-      if (typeof o[k] === 'undefined') return;
-      keys.push(k);
-      placeholders.push('?' + c++);
-      values.push(o[k]);
-    });
-    if (keys.length > 0) {
-      var query = sprintf(
-        'REPLACE INTO %s (%s) VALUES (%s)',
-        table,
-        keys.join(', '),
-        placeholders.join(', ')
-      );
-      console.log(query);
-      this.db.run(query, values, callback);
-    }
-  },
-
   listeners: {
-    'say': function() {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift(this.main_channel);
-      this.say.apply(this, args);
-    },
-    'say_phrase': function() {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift(this.main_channel);
-      this.say_phrase.apply(this, args);
-    },
-    'reply': function() {
-      this.say.apply(this, arguments);
-    },
-    'reply_phrase': function() {
-      this.say_phrase.apply(this, arguments);
-    }
+    // Nothing here
   },
 
   irc_listeners: {
     'message': function(nick, to, text, message) {
-      this.dispatch('message', nick, to, text, message);
+      var replyto = (to === this.nick) ? nick : to;
+      var opt = {
+        from: nick,
+        to: to,
+        text: text.trim(),
+        privmsg: (to === this.nick),
+        bot: this,
+        message: message,
+        reply: function(reply) {
+          var args = Array.prototype.slice.call(arguments);
+          args.unshift(replyto);
+          opt.bot.say.apply(opt.bot, args);
+        },
+        reply_phrase: function(reply) {
+          var args = Array.prototype.slice.call(arguments);
+          args.unshift(replyto);
+          opt.bot.say_phrase.apply(opt.bot, args);
+        }
+      };
+      this.dispatch('message', opt);
+    },
+    'registered': function(message) {
+      // Detect nick change on connect
+      if (message.args && typeof message.args[0] === 'string') {
+        this.nick = message.args[0];
+      }
     },
     'error': function() {
       console.log('irc error', arguments);
