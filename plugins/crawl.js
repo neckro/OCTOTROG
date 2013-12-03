@@ -40,7 +40,7 @@ module.exports = {
   parse_crawl_message: function(text, privmsg) {
     var matches, dispatched;
     // check for player death
-    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( on (\w+:?\d\d?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
+    matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
     if (matches !== null) {
       dispatched = true;
       this.bot.dispatch('player_death', {
@@ -54,10 +54,10 @@ module.exports = {
         god: matches[11],
         fate: matches[12],
         place: matches[14],
-        date: matches[17],
-        score: matches[18],
-        turns: matches[19],
-        duration: matches[20]
+        date: matches[18],
+        score: matches[19],
+        turns: matches[20],
+        duration: matches[21]
       }, privmsg);
     }
 
