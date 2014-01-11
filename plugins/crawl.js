@@ -402,6 +402,20 @@ module.exports = {
         this.relay('Henzell', opt);
       }
     },
+    "!players": {
+      description: "Lists all players currently playing on CAO. (crawl.akrasiac.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Henzell', opt);
+      }
+    },
+    "!version": {
+      description: "List all game versions currently being hosted on CAO. (crawl.akrasiac.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Henzell', opt);
+      }
+    },
 
     // Gretell
     "@??": {
@@ -425,6 +439,20 @@ module.exports = {
         this.relay('Gretell', opt);
       }
     },
+    "@players": {
+      description: "Lists all players currently playing on CDO. (crawl.develz.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Gretell', opt);
+      }
+    },
+    "@version": {
+      description: "List all game versions currently being hosted on CDO. (crawl.develz.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Gretell', opt);
+      }
+    },
 
     // Sizzell
     "%whereis": {
@@ -436,6 +464,20 @@ module.exports = {
     },
     "%dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.s-z.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sizzell', opt);
+      }
+    },
+    "%players": {
+      description: "Lists all players currently playing on CSZO. (crawl.s-z.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sizzell', opt);
+      }
+    },
+    "%version": {
+      description: "List all game versions currently being hosted on CSZO. (crawl.s-z.org)",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Sizzell', opt);
@@ -457,6 +499,21 @@ module.exports = {
         this.relay('Lantell', opt);
       }
     },
+    "$players": {
+      description: "Lists all players currently playing on CLAN. (crawl.lantea.net)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Lantell', opt);
+      }
+    },
+    "$version": {
+      description: "List all game versions currently being hosted on CLAN. (crawl.lantea.net)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Lantell', opt);
+      }
+    },
+
     // Rotatell
       "^whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.berotato.org)",
