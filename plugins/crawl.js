@@ -6,7 +6,7 @@ var extend = require('extend');
 module.exports = {
   name: "crawl",
   prefix: "",
-  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro'],
+  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell'],
   morgue_delay_fresh: 10 * 1000, // ms to wait before requesting fresh morgues
   morgue_delay_moldy: 1 * 1000, // ms to wait before requesting old morgues
   morgue_timeout: 10 * 1000, // Max ms to wait for a morgue response
@@ -455,6 +455,35 @@ module.exports = {
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Lantell', opt);
+      }
+    },
+    // Rotatell
+      "^whereis": {
+      description: "Lists where a player currently is in the dungeon. (crawl.berotato.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Rotatell', opt);
+      }
+    },
+    "^dump": {
+      description: "Gives an URL to the specified user's last character dump. (crawl.berotato.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Rotatell', opt);
+      }
+    },
+    "^players": {
+      description: "Lists all players currently playing on CBRO. (crawl.berotato.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Rotatell', opt);
+      }
+    },
+    "^version": {
+      description: "List all game versions currently being hosted on CBRO. (crawl.berotato.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Rotatell', opt);
       }
     }
   }
