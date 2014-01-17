@@ -272,6 +272,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!kw": {
+      description: "Define keyword: `!kw <keyword> <definition>` to define, `!kw -rm <keyword>` to delete, `!kw <keyword>` to query, `!kw -ls` to list.",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sequell', opt);
+      }
+    },
     "!lairratio": {
       description: "Shows how often a player reaches the Lair.",
       response: function(opt) {
