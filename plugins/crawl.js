@@ -204,6 +204,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "s??": {
+      no_space: true,
+      description: "Search for an entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!abyss": {
       description: "Use with caution.",
       response: function(opt) {
