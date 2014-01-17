@@ -204,6 +204,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "s??": {
+      no_space: true,
+      description: "Search for an entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!abyss": {
       description: "Use with caution.",
       response: function(opt) {
@@ -269,6 +276,13 @@ module.exports = {
       description: "Usage: !killratio <unique monster> <player>",
       response: function(opt) {
         if (opt.params.length < 2) opt.params.push(opt.nick);
+        this.relay('Sequell', opt);
+      }
+    },
+    "!kw": {
+      description: "Define keyword: `!kw <keyword> <definition>` to define, `!kw -rm <keyword>` to delete, `!kw <keyword>` to query, `!kw -ls` to list.",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Sequell', opt);
       }
     },
@@ -416,6 +430,13 @@ module.exports = {
         this.relay('Henzell', opt);
       }
     },
+    "!watch": {
+      description: "Display webtiles URL for user on CAO. (crawl.akrasiac.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Henzell', opt);
+      }
+    },
 
     // Gretell
     "@??": {
@@ -483,6 +504,13 @@ module.exports = {
         this.relay('Sizzell', opt);
       }
     },
+    "%watch": {
+      description: "Display webtiles URL for user on CSZO. (crawl.s-z.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Sizzell', opt);
+      }
+    },
 
     // Lantell
     "$whereis": {
@@ -513,6 +541,13 @@ module.exports = {
         this.relay('Lantell', opt);
       }
     },
+    "$watch": {
+      description: "Display webtiles URL for user on CLAN. (crawl.lantea.net)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Lantell', opt);
+      }
+    },
 
     // Rotatell
       "^whereis": {
@@ -538,6 +573,13 @@ module.exports = {
     },
     "^version": {
       description: "List all game versions currently being hosted on CBRO. (crawl.berotato.org)",
+      response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.nick);
+        this.relay('Rotatell', opt);
+      }
+    },
+    "^watch": {
+      description: "Display webtiles URL for user on CBRO. (crawl.berotato.org)",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Rotatell', opt);
