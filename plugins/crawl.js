@@ -7,6 +7,7 @@ module.exports = {
   name: "crawl",
   prefix: "",
   relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell'],
+  relay_servers: ['Sequell', 'CAO', 'CDO', 'CSZO', 'CLAN', 'neckro', 'CBRO'],
   morgue_delay_fresh: 10 * 1000, // ms to wait before requesting fresh morgues
   morgue_delay_moldy: 1 * 1000, // ms to wait before requesting old morgues
   morgue_timeout: 10 * 1000, // Max ms to wait for a morgue response
@@ -25,7 +26,7 @@ module.exports = {
     );
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (this.relay_bots.indexOf(nick) === -1) return;
-      this.parse_crawl_message(text, (to === this.bot.nick));
+      this.parse_crawl_message(text, (to === this.bot.nick), this.relay_servers[this.relay_bots.indexOf(nick)]);
     }.bind(this));
     this.relay_client.addListener('error', function() {
       console.warn('relay client error:', arguments);
@@ -37,7 +38,7 @@ module.exports = {
     this.relay_client.disconnect();
   },
 
-  parse_crawl_message: function(text, privmsg) {
+  parse_crawl_message: function(text, privmsg, nick) {
     var matches, dispatched;
     // check for player death
     matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
@@ -58,7 +59,7 @@ module.exports = {
         score: matches[19],
         turns: matches[20],
         duration: matches[21]
-      }, privmsg);
+      }, privmsg, nick);
     }
 
     // check for player milestone
@@ -73,7 +74,7 @@ module.exports = {
         class: matches[4],
         milestone: matches[5],
         place: matches[6]
-      }, privmsg);
+      }, privmsg, nick);
     }
 
     // check for player morgue
@@ -126,12 +127,12 @@ module.exports = {
   },
 
   listeners: {
-    'player_death': function(death, privmsg) {
+    'player_death': function(death, privmsg, nick) {
       var self = this;
       // Get !lg from Sequell, and set up handler to process the response
       this.bot.dispatch('check_watchlist', death.player, function(watched) {
         if (privmsg || watched) {
-          if (!death.morgue) self.bot.emit('say', false, death.text);
+          if (!death.morgue) self.bot.emit('say', false, death.text + ' (' + nick + ')');
 
           // Wait to request morgue
           var delay = death.result_num ? self.morgue_delay_moldy : self.morgue_delay_fresh;
@@ -186,10 +187,10 @@ module.exports = {
       });
     },
 
-    'player_milestone': function(milestone, privmsg) {
+    'player_milestone': function(milestone, privmsg, nick) {
       var self = this;
       this.bot.dispatch('check_watchlist', milestone.player, function(watched) {
-        if (watched || privmsg) self.bot.emit('say', false, milestone.text);
+        if (watched || privmsg) self.bot.emit('say', false, milestone.text + ' (' + nick + ')');
       });
       // TODO: check for ghost kills
     }
