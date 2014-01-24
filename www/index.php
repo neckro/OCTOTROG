@@ -6,6 +6,7 @@ class TrogReport {
   protected $col_titles = array(
     'xl' => 'XL',
     'class' => 'Char',
+    'date' => 'Date (UTC)',
   );
   protected $col_right_align = array(
     'score', 'place', 'xl', 'turns', 'duration', 'attempts'
@@ -42,12 +43,8 @@ class TrogReport {
     return $db;
   }
 
-  public static function prepare($q) {
-    return static::get_db()->prepare($q);
-  }
-
   public function printTable($query, $bindings = array()) {
-    $stmt = static::prepare($query);
+    $stmt = static::get_db()->prepare($query);
     foreach ($bindings as $k => $d) {
       $stmt->bindValue($k, $d);
     }
@@ -137,7 +134,7 @@ class TrogReport {
 
   public static function showCombo($race, $class, $dmin, $dmax, $limit = 100) {
     $r = new TrogReport(sprintf(
-      'Individual Top %s%s, %s-%s (UTC)',
+      'Individual Top %s%s, %s-%s (PST)',
       $race, $class,
       str_replace('-', '/', substr($dmin, 5)),
       str_replace('-', '/', substr($dmax, 5))
@@ -149,7 +146,7 @@ class TrogReport {
         MAX(score) AS score,
         COUNT(player) AS attempts
         FROM deaths
-          WHERE DATE(`date`) BETWEEN :dmin AND :dmax
+          WHERE DATE(`date`, "localtime", "-2 hours") BETWEEN :dmin AND :dmax
           AND race=:race AND class=:class
           GROUP BY player
       ) best USING (player, score)
@@ -219,7 +216,10 @@ if (!empty($_GET['player'])) {
 } else {
   echo TrogReport::listPlayers();
   echo TrogReport::showHistory(10);
-  echo TrogReport::showCombo('Ko', 'As', '2013-12-16', '2013-12-28');
+  echo TrogReport::showCombo('HE', 'AE', '2014-01-20', '2014-01-26');
+  echo TrogReport::showCombo('Ds', 'Mo', '2014-01-13', '2014-01-19');
+  echo TrogReport::showCombo('Mf', 'Tm', '2014-01-06', '2014-01-12');
+  echo TrogReport::showCombo('Ko', 'As', '2013-12-16', '2014-01-05');
   echo TrogReport::showCombo('DE', 'Wz', '2013-12-09', '2013-12-15');
   echo TrogReport::showCombo('Mi', 'Fi', '2013-12-02', '2013-12-08');
   echo TrogReport::showCombo('Hu', 'Wn', '2013-11-25', '2013-12-01');
