@@ -6,8 +6,8 @@ var extend = require('extend');
 module.exports = {
   name: "crawl",
   prefix: "",
-  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell'],
-  relay_servers: ['Sequell', 'CAO', 'CDO', 'CSZO', 'CLAN', 'neckro', 'CBRO'],
+  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell', 'Rotatelljr'],
+  relay_servers: ['Sequell', 'CAO', 'CDO', 'CSZO', 'CLAN', 'neckro', 'CBRO', 'CBRO-mundane'],
   morgue_delay_fresh: 10 * 1000, // ms to wait before requesting fresh morgues
   morgue_delay_moldy: 1 * 1000, // ms to wait before requesting old morgues
   morgue_timeout: 10 * 1000, // Max ms to wait for a morgue response
