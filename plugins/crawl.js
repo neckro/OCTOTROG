@@ -190,7 +190,7 @@ module.exports = {
     'player_milestone': function(milestone, privmsg, nick) {
       var self = this;
       this.bot.dispatch('check_watchlist', milestone.player, function(watched) {
-        if (watched || privmsg) self.bot.emit('say', false, milestone.text + ' (' + nick + ')');
+        if (watched) self.bot.emit('say', false, milestone.text + ' (' + nick + ')');
       });
       // TODO: check for ghost kills
     }
