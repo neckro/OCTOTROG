@@ -339,7 +339,6 @@ module.exports = {
     "!mfcwc": {
       description: "Performs !hs @mfc mfcwc : !kw @mfc or !kw mfcwc for details.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
         this.relay('Sequell', opt);
       }
     },
