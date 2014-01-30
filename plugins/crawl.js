@@ -337,7 +337,7 @@ module.exports = {
       }
     },
     "!mfcwc": {
-      description: "Performs !hs @mfc mfcwc : !kw @mfc or !kw mfcwc for details.",
+      description: "New Sequell command to perform: !hs @mfc mfcwc | !nick mfc <nicks> | !kw mfcwc OpBe rstart>=201400270900 rend<=201401030900 | remember rstart/rend is in GMT",
       response: function(opt) {
         this.relay('Sequell', opt);
       }
