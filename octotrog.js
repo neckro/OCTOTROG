@@ -4,7 +4,7 @@ var ircbot = require('./ircbot');
 
 var bot, bot_options = {
   server: "irc.lunarnet.org",
-  nick: "OCTOTROG",
+  nick: "OCTOTROGjr",
   main_channel: '#octolog',
   irc: {
     userName: "octotrog",
