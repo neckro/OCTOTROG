@@ -38,7 +38,7 @@ module.exports = {
     this.relay_client.disconnect();
   },
 
-  parse_crawl_message: function(text, privmsg, nick) {
+  parse_crawl_message: function(text, privmsg, server) {
     var matches, dispatched;
     // check for player death
     matches = text.match(/^((\d+)(\/\d+)?(\. ))?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/);
@@ -59,7 +59,7 @@ module.exports = {
         score: matches[19],
         turns: matches[20],
         duration: matches[21]
-      }, privmsg, nick);
+      }, privmsg, server);
     }
 
     // check for player milestone
@@ -74,7 +74,7 @@ module.exports = {
         class: matches[4],
         milestone: matches[5],
         place: matches[6]
-      }, privmsg, nick);
+      }, privmsg, server);
     }
 
     // check for player morgue
@@ -108,8 +108,8 @@ module.exports = {
     }
 
     // Relay all privmsgs that weren't already dispatched
-    if (privmsg && !dispatched) {
-      this.bot.emit('say', false, text);
+    if (privmsg && !dispateched) {
+      this.bot.emit('say', false, text + ' (' + server + ')');
     }
   },
 
@@ -127,12 +127,12 @@ module.exports = {
   },
 
   listeners: {
-    'player_death': function(death, privmsg, nick) {
+    'player_death': function(death, privmsg, server) {
       var self = this;
       // Get !lg from Sequell, and set up handler to process the response
       this.bot.dispatch('check_watchlist', death.player, function(watched) {
         if (privmsg || watched) {
-          if (!death.morgue) self.bot.emit('say', false, death.text + ' (' + nick + ')');
+          if (!death.morgue) self.bot.emit('say', false, death.text + ' (' + server + ')');
 
           // Wait to request morgue
           var delay = death.result_num ? self.morgue_delay_moldy : self.morgue_delay_fresh;
@@ -166,7 +166,7 @@ module.exports = {
                     self.bot.dispatch('player_death', death);
                   }, self.morgue_retry_delay);
                 } else {
-                  self.bot.emit('say', "couldn't retrieve morgue for player %s.", death.player);
+                  self.bot.emit('say', "couldn't retrieve morgue for player %s.", death.player + ' (' + server + ')');
                 }
               });
             }
@@ -187,10 +187,10 @@ module.exports = {
       });
     },
 
-    'player_milestone': function(milestone, privmsg, nick) {
+    'player_milestone': function(milestone, privmsg, server) {
       var self = this;
       this.bot.dispatch('check_watchlist', milestone.player, function(watched) {
-        if (watched) self.bot.emit('say', false, milestone.text + ' (' + nick + ')');
+        if (watched) self.bot.emit('say', false, milestone.text + ' (' + server + ')');
       });
       // TODO: check for ghost kills
     }
