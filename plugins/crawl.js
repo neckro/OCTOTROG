@@ -336,6 +336,12 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!mfcwc": {
+      description: "New Sequell command to perform: !hs @mfc mfcwc | !nick mfc <nicks> | !kw mfcwc OpBe rstart>=201400270900 rend<=201401030900 | remember rstart/rend is in GMT",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!nchoice": {
       description: "Shows Nemelex's Choice.",
       response: function(opt) {
