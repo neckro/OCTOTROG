@@ -109,9 +109,7 @@ module.exports = {
 
     // Relay all privmsgs that weren't already dispatched
     if (privmsg && !dispateched) {
-      if (server !== 'CBRO-mundane') {
-        this.bot.emit('say', false, text + ' (' + server + ')');
-      }
+      this.bot.emit('say', false, text + ' (' + server + ')');
     }
   },
 
