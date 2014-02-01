@@ -123,7 +123,7 @@ module.exports = {
 
   relay: function(remote_bot, opt) {
     // TODO: use opt.reply to allow privmsgs
-    this.relay_client.say(remote_bot, opt.command + ' ' + opt.params.join(' '));
+    this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
   },
 
   listeners: {
@@ -198,6 +198,17 @@ module.exports = {
 
   commands: {
     // Sequell
+    "!sequell": {
+      description: "Pass arbitrary command to Sequell | !sequell !hs . OpBe | Must use . for your nick",
+      response: function(opt) {
+        var actualcommand = opt.params.join(' ');
+        actualcommand = actualcommand.replace(' . ', opt.nick);
+        opt.params = [];
+        opt.params.push(actualcommand);
+        opt.command = '';
+        this.relay('Sequell', opt);
+      }
+    },
     "??": {
       no_space: true,
       description: "Look up an entry in LearnDB.",
