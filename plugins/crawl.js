@@ -63,7 +63,7 @@ module.exports = {
     }
 
     // check for player milestone
-    matches = text.match(/^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)/);
+    matches = text.match(/^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)\)$/);
     if (matches !== null) {
       dispatched = true;
       this.bot.dispatch('player_milestone', {
