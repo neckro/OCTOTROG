@@ -198,11 +198,11 @@ module.exports = {
 
   commands: {
     // Sequell
-    "!sequell": {
+    "!!": {
       description: "Pass arbitrary command to Sequell | !sequell !hs . OpBe | Must use . for your nick",
       response: function(opt) {
         var actualcommand = opt.params.join(' ');
-        actualcommand = actualcommand.replace(' . ', opt.nick);
+        actualcommand = actualcommand.replace(' .', ' ' + opt.nick + ' ');
         opt.params = [];
         opt.params.push(actualcommand);
         opt.command = '';
