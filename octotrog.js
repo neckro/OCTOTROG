@@ -35,7 +35,7 @@ if (process.argv[2] === 'test') {
   var crawl_options = {
     relay_nick: 'TESTTROG',
     relay_server: 'irc.freenode.net',
-    relay_channel: '#octotest'
+    relay_channels: ['#octotest']
   };
 }
 

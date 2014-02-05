@@ -21,7 +21,7 @@ module.exports = {
   // IRC options
   relay_nick: 'OCTOTROG',
   relay_server: 'irc.freenode.net',
-  relay_channel: '##crawl',
+  relay_channels: ['##crawl', '#octolog'],
 
   parsers: [
     {
@@ -140,7 +140,7 @@ module.exports = {
       channels: ['##crawl']
     });
     this.relay_nick = this.bot.relay_nick || this.bot.nick || 'OCTOTROG';
-    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, extend({}, this.bot.irc, { channels: [this.relay_channel] }));
+    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, extend({}, this.bot.irc, { channels: this.relay_channels }));
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (this.relay_bots.indexOf(nick) === -1) return;
       this.emitP('crawl_event', text, nick, (to === this.bot.nick));
@@ -303,13 +303,11 @@ module.exports = {
     // Sequell
     "!!": {
       no_space: true,
-      description: "Pass arbitrary command to Sequell | !!hs . OpBe | Must use . for your nick",
+      description: "Pass an arbitrary command to Sequell: !!hs . OpBe",
       response: function(opt) {
-        var actualcommand = '!' +  opt.params.join(' ');
-        actualcommand = actualcommand.replace(' .', ' ' + opt.nick + ' ');
-        opt.params = [];
-        opt.params.push(actualcommand);
-        opt.command = '';
+        var i = opt.params.indexOf('.');
+        if (i > -1) opt.params[i] = opt.from;
+        opt.command = '!' + (opt.params.shift() || '');
         this.relay('Sequell', opt);
       }
     },
@@ -330,7 +328,7 @@ module.exports = {
     "!abyss": {
       description: "Use with caution.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -343,7 +341,7 @@ module.exports = {
     "!chars": {
       description: "Lists the frequency of all character types a player started.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -356,77 +354,77 @@ module.exports = {
     "!gamesby": {
       description: "Summarizes a player's public server career.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!gkills": {
       description: "Lists the top kills for a player's ghost.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!greatplayer": {
       description: "Shows a player's unwon species.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!greaterplayer": {
       description: "Shows a player's unwon backgrounds.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!hs": {
       description: "Lists the highest-scoring game for a player.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!killratio": {
       description: "Usage: !killratio <unique monster> <player>",
       response: function(opt) {
-        if (opt.params.length < 2) opt.params.push(opt.nick);
+        if (opt.params.length < 2) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!kw": {
       description: "Define keyword: `!kw <keyword> <definition>` to define, `!kw -rm <keyword>` to delete, `!kw <keyword>` to query, `!kw -ls` to list.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lairratio": {
       description: "Shows how often a player reaches the Lair.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lg": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !lg (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!listgame": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !listgame (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lm": {
       description: "Lists milestones for the specified player. Usage: !lm (<player>) (<number>) (options) where options are in the form field=value, or (max|min)=field. See ??milestone for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -447,7 +445,7 @@ module.exports = {
     "!log": {
       description: "Gives a URL to the user's last morgue file. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -466,7 +464,7 @@ module.exports = {
     "%rc": {
       description: "Gives a URL to the user's rc file.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -479,21 +477,21 @@ module.exports = {
     "!streak": {
       description: "Show's a player's winning streak (or lack thereof).",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!ttr": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!ttyrec": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -506,7 +504,7 @@ module.exports = {
     "!won": {
       description: "Shows the number of games won. Usage: !won <nick> [<number of wins to skip>]",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -521,7 +519,7 @@ module.exports = {
     "!dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.akrasiac.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Henzell', opt);
       }
     },
@@ -534,28 +532,28 @@ module.exports = {
     "!whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.akrasiac.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Henzell', opt);
       }
     },
     "!players": {
       description: "Lists all players currently playing on CAO. (crawl.akrasiac.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Henzell', opt);
       }
     },
     "!version": {
       description: "List all game versions currently being hosted on CAO. (crawl.akrasiac.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Henzell', opt);
       }
     },
     "!watch": {
       description: "Display webtiles URL for user on CAO. (crawl.akrasiac.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Henzell', opt);
       }
     },
@@ -571,28 +569,28 @@ module.exports = {
     "@whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.develz.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Gretell', opt);
       }
     },
     "@dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.develz.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Gretell', opt);
       }
     },
     "@players": {
       description: "Lists all players currently playing on CDO. (crawl.develz.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Gretell', opt);
       }
     },
     "@version": {
       description: "List all game versions currently being hosted on CDO. (crawl.develz.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Gretell', opt);
       }
     },
@@ -601,35 +599,35 @@ module.exports = {
     "%whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.s-z.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sizzell', opt);
       }
     },
     "%dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.s-z.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sizzell', opt);
       }
     },
     "%players": {
       description: "Lists all players currently playing on CSZO. (crawl.s-z.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sizzell', opt);
       }
     },
     "%version": {
       description: "List all game versions currently being hosted on CSZO. (crawl.s-z.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sizzell', opt);
       }
     },
     "%watch": {
       description: "Display webtiles URL for user on CSZO. (crawl.s-z.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sizzell', opt);
       }
     },
@@ -638,35 +636,35 @@ module.exports = {
     "$whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.lantea.net)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Lantell', opt);
       }
     },
     "$dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.lantea.net)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Lantell', opt);
       }
     },
     "$players": {
       description: "Lists all players currently playing on CLAN. (crawl.lantea.net)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Lantell', opt);
       }
     },
     "$version": {
       description: "List all game versions currently being hosted on CLAN. (crawl.lantea.net)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Lantell', opt);
       }
     },
     "$watch": {
       description: "Display webtiles URL for user on CLAN. (crawl.lantea.net)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Lantell', opt);
       }
     },
@@ -675,35 +673,35 @@ module.exports = {
       "^whereis": {
       description: "Lists where a player currently is in the dungeon. (crawl.berotato.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Rotatell', opt);
       }
     },
     "^dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.berotato.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Rotatell', opt);
       }
     },
     "^players": {
       description: "Lists all players currently playing on CBRO. (crawl.berotato.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Rotatell', opt);
       }
     },
     "^version": {
       description: "List all game versions currently being hosted on CBRO. (crawl.berotato.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Rotatell', opt);
       }
     },
     "^watch": {
       description: "Display webtiles URL for user on CBRO. (crawl.berotato.org)",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.nick);
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Rotatell', opt);
       }
     }
