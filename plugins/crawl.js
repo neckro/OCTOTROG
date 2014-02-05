@@ -26,7 +26,21 @@ module.exports = {
   parsers: [
     {
       event: 'player_death',
-      regex: /^((\d+)(\/\d+)?(\. ))?(\[([^\]]+)\] )?(\w+) the ([\w ]+) \(L(\d\d?) (\w\w)(\w\w)\), (worshipper of ([\w ]+), )?(.+?)( [io]n (\w+(:\d\d?)?))?( \([^)]*\))?( on ([-0-9]+ [:0-9]+))?, with (\d+) points after (\d+) turns and ([^.]+)\.$/,
+      regex: '^' +
+        '((\\d+)(/\\d+)?(\\. ))?'       +// 147/150. 
+        '(\\[([^\\]]+)\\] )?'           +// [src=cszo;id=2613578;v=0.13.0]
+        '(\\w+) the ([\\w ]+) '         +// necKro23 the Ducker
+        '\\(L(\\d\\d?) '                +// (L6
+        '(\\w\\w)(\\w\\w)\\), '         +// OpBe),
+        '(worshipper of ([\\w ]+), )?'  +// worshipper of Trog,
+        '(.+?)'                         +// slain by an orc wizard
+        '( [io]n '                      +// on 
+        '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
+        '( \\(([^)]*)\\))?'             +// (vault_name) 
+        '( on ([-0-9]+ [:0-9]+))?, '    +// on 2013-10-12 03:54:15, 
+        'with (\\d+) points after '     +// with 510 points after
+        '(\\d+) turns and ([^.]+)\\.'   +// 2206 turns and 0:09:07.
+        '$',
       mapping: {
         result_num: 2,
         extra_info: 6,
@@ -38,25 +52,54 @@ module.exports = {
         god: 13,
         fate: 14,
         place: 16,
-        date: 20,
-        score: 21,
-        turns: 22,
-        duration: 23
-      }
+        vault: 19,
+        date: 21,
+        score: 22,
+        turns: 23,
+        duration: 24
+      },
+      tests: [
+        "axxe the Warrior (L13 MiFi), worshipper of Okawaru, succumbed to a naga ritualist's toxic radiance in D (Sprint), with 28919 points after 3753 turns and 0:07:59.",
+        "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe), worshipper of Trog, slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
+        "5. neckro23 the Cleaver (L12 MiBe), worshipper of Trog, demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08."
+      ]
     }, {
       event: 'player_milestone',
-      regex: /^([^(].*) \(L(\d\d?) (\w\w)(\w\w)\) (.*) \(([^)]*)\)$/,
+      regex: '^' +
+        '((\\d+)(/\\d+)?(\\. ))?'       +// 660/661. 
+        '(\\[([-0-9]+ [:0-9]+)\\] )?'   +// [2013-10-12 03:53:52] 
+        '(\\[([^\\]]+)\\] )?'           +// [src=cszo;v=0.13.0] 
+        '(\\w+) (the ([\\w ]+) )?'      +// necKro23 the Ducker 
+        '\\(L(\\d\\d?) '                +// (L6
+        '(\\w\\w)(\\w\\w)\\) '          +// OpBe) 
+        '(.*?) '                        +// killed Grinder on turn 2190. 
+        '\\((.+( \\(Sprint\\))?)\\)'    +// (D:3)
+        '$',
       mapping: {
-        player: 1,
-        xl: 2,
-        race: 3,
-        class: 4,
-        milestone: 5,
-        place: 6
-      }
+        result_num: 2,
+        date: 5,
+        extra_info: 7,
+        player: 9,
+        title: 11,
+        xl: 12,
+        race: 13,
+        class: 14,
+        milestone: 15,
+        place: 16
+      },
+      tests: [
+        "27. [2013-10-12 03:53:52] [src=cszo;v=0.13.0] neckro23 the Ducker (L5 OpBe) killed Grinder on turn 2190. (D:3)",
+        "axxe (L12 MiFi) killed Erica. (D (Sprint))"
+      ]
     }, {
       event: 'player_morgue',
-      regex: /^(\d+)(\/\d+)?\. (\w+), XL(\d\d?) (\w\w)(\w\w), T:(\d+): (http:\/\/.*)$/,
+      regex: '^' +
+        '(\\d+)(/\\d+)?\\. '            +// 660/661. 
+        '(\\w+), XL(\\d\\d?) '          +// necKro23, XL6 
+        '(\\w\\w)(\\w\\w), '            +// OpBe, 
+        'T:(\\d+): '                    +// T:2206: 
+        '(http://.*)'                   +// http://dobrazupa.org/[...]
+        '$',
       mapping:  {
         result_num: 1,
         player: 3,
@@ -65,10 +108,19 @@ module.exports = {
         class: 6,
         turns: 7,
         morgue: 8
-      }
+      },
+      tests: [
+        "19/20. neckro23, XL6 OpBe, T:2206: http://dobrazupa.org/morgue/neckro23/morgue-neckro23-20131012-035415.txt"
+      ]
     }, {
       event: 'player_morgue_failed',
-      regex: /^No games for (\w+) \((\w\w)(\w\w) xl=(\d\d?) turns=(\d+) score=(\d+)\)\.$/,
+      regex: '^' +
+        'No games for (\\w+) '          +// No games for neckro23 
+        '\\((\\w\\w)(\\w\\w) '          +// (OpBe 
+        'xl=(\\d\\d?) '                 +// xl=6 
+        'turns=(\\d+) '                 +// turns=2206
+        'score=(\\d+)\\)\\.'            +// score=500).
+        '$',
       mapping: {
         player: 1,
         race: 2,
@@ -76,7 +128,10 @@ module.exports = {
         xl: 4,
         turns: 5,
         score: 6
-      }
+      },
+      tests: [
+        "No games for neckro23 (OpBe xl=6 turns=2207 score=500)."
+      ]
     }
   ],
 
@@ -104,28 +159,33 @@ module.exports = {
     return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
   },
 
+  parse_message: function(parsers, text) {
+    // Check the parsers for first event match
+    var event, info = {};
+    parsers.some(function(p) {
+      var matches = text.match(p.regex);
+      if (matches === null) return;
+      event = p.event;
+      foreach(p.mapping, function(i, n) {
+        info[n] = matches[i];
+      });
+      return true;
+    });
+    return { event: event, info: info };
+  },
+
   listeners: {
     'crawl_event': function(deferred, text, from, privmsg) {
       // Recieved a message from a bot!  Do something about it.
-      var event, info = {
-        text: text,
-        from: from,
-        privmsg: privmsg
-      };
+      var parsed = this.parse_message(this.parsers, text);
 
-      // Check the parsers for first event match
-      this.parsers.some(function(p) {
-        var matches = text.match(p.regex);
-        if (matches === null) return;
-        event = p.event;
-        foreach(p.mapping, function(i, n) {
-          info[n] = matches[i];
+      if (parsed.event) {
+        extend(parsed.info, {
+          text: text,
+          from: from,
+          privmsg: privmsg
         });
-        return true;
-      });
-
-      if (event) {
-        deferred.resolve(this.emitP(event, info));
+        deferred.resolve(this.emitP(parsed.event, parsed.info));
       } else {
         // No event to dispatch!
         // Relay the text anyways if appropriate
