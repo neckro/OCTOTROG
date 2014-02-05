@@ -1,6 +1,7 @@
-CREATE TABLE IF NOT EXISTS deaths (
+CREATE TABLE IF NOT EXISTS deaths_ (
   id INTEGER,
   server TEXT,
+  version TEXT,
   score INTEGER,
   player TEXT,
   race CHAR(2),

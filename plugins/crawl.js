@@ -239,8 +239,9 @@ module.exports = {
       deferred.resolve(this.dispatch('check_watchlist', info.player)
       .bind(this)
       .then(function(watched) {
+        info.watched = watched;
         // Relay death event to channel if appropriate
-        if (watched || info.privmsg) {
+        if (info.watched || info.privmsg) {
           this.say(false, '<%s> %s', info.from, info.text);
         } else {
           // Stop event resolution, we don't care about this death event
@@ -263,20 +264,26 @@ module.exports = {
         ]);
       })
       .spread(function(morgue, extra_info) {
-        extend(info, extra_info, { morgue: morgue });
+        extend(info, {
+          id: extra_info.id,
+          server: extra_info.src,
+          version: extra_info.v,
+          morgue: morgue
+        });
         this.say(false,
           "server: %s; id: %s; version: %s; morgue: %s",
-          info.src,
+          info.server,
           info.id,
-          info.v,
+          info.version,
           info.morgue
         );
-        // Log everything to the database
-        this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
+        // Log everything to the database, if on watchlist
+        if (!info.watched) return info;
+        return (this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
         .bind(this)
         .catch(function(e) {
           this.say_phrase('database_error', e);
-        });
+        }));
       }));
     },
 
