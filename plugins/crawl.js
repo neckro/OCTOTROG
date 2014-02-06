@@ -38,8 +38,8 @@ module.exports = {
         '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
         '( \\(([^)]*)\\))?'             +// (vault_name) 
         '( on ([-0-9]+ [:0-9]+))?, '    +// on 2013-10-12 03:54:15, 
-        'with (\\d+) points after '     +// with 510 points after
-        '(\\d+) turns and ([^.]+)\\.'   +// 2206 turns and 0:09:07.
+        'with (\\d+) points? after '    +// with 510 points after
+        '(\\d+) turns? and ([^.]+)\\.'  +// 2206 turns and 0:09:07.
         '$',
       mapping: {
         result_num: 2,
