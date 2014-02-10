@@ -10,7 +10,15 @@ module.exports = {
   prefix: "",
 
   // Listen for these nicks
-  relay_bots: ['Sequell', 'Henzell', 'Gretell', 'Sizzell', 'Lantell', 'necKro', 'Rotatell', 'Rotatelljr'],
+  relay_bots: {
+    'Sequell': true,
+    'Henzell': 'cao',
+    'Gretell': 'cdo',
+    'Sizzell': 'cszo',
+    'Lantell': 'clan',
+    'Rotatell': 'cbro',
+    'Rotatelljr': 'cbro+'
+  },
   // Max ms to wait for game info
   info_timeout: 10 * 1000,
   // Delay between game info requests
@@ -142,7 +150,7 @@ module.exports = {
     this.relay_nick = this.bot.relay_nick || this.bot.nick || 'OCTOTROG';
     this.relay_client = new irc.Client(this.relay_server, this.relay_nick, extend({}, this.bot.irc, { channels: this.relay_channels }));
     this.relay_client.addListener('message', function(nick, to, text, message) {
-      if (this.relay_bots.indexOf(nick) === -1) return;
+      if (!this.relay_bots[nick]) return;
       this.emitP('crawl_event', text, nick, (to === this.bot.nick));
     }.bind(this));
     this.relay_client.addListener('error', function() {
@@ -157,6 +165,13 @@ module.exports = {
 
   relay: function(remote_bot, opt) {
     return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+  },
+
+  relay_response: function(text, from) {
+    var echo = text;
+    var server = from && this.relay_bots[from];
+    if (typeof server === 'string') echo += ' [' + server + ']';
+    this.say(false, echo);
   },
 
   parse_message: function(parsers, text) {
@@ -189,7 +204,7 @@ module.exports = {
       } else {
         // No event to dispatch!
         // Relay the text anyways if appropriate
-        if (privmsg) this.say(false, '<%s> %s', from, text);
+        if (privmsg) this.relay_response(text);
         deferred.reject();
       }
     },
@@ -242,7 +257,7 @@ module.exports = {
         info.watched = watched;
         // Relay death event to channel if appropriate
         if (info.watched || info.privmsg) {
-          this.say(false, '<%s> %s', info.from, info.text);
+          this.relay_response(info.text, info.from);
         } else {
           // Stop event resolution, we don't care about this death event
           throw "Not giving a fuck.";
@@ -300,7 +315,7 @@ module.exports = {
       .bind(this)
       .then(function(watched) {
         if (watched || info.privmsg) {
-          this.say(false, '<%s> %s', info.from, info.text);
+          this.relay_response(info.text, info.from);
         }
       });
       // TODO: check for ghost kills?
