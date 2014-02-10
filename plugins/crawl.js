@@ -291,6 +291,8 @@ module.exports = {
       if (this.queueCompare('player_morgue', info,
         ['player', 'race', 'class', 'xl', 'turns', 'score']
       )) return;
+
+      if (info.privmsg) this.say(false, info.text);
     },
 
     'player_milestone': function(deferred, info) {
