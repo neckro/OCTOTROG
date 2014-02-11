@@ -12,6 +12,7 @@ module.exports = {
   // Listen for these nicks
   relay_bots: {
     'Sequell': true,
+    'Cheibriados' : true,
     'Henzell': 'cao',
     'Gretell': 'cdo',
     'Sizzell': 'cszo',
@@ -28,7 +29,7 @@ module.exports = {
 
   // IRC options
   relay_nick: 'OCTOTROG',
-  relay_server: 'irc.freenode.net',
+  relay_server: 'chat.freenode.net',
   relay_channels: ['##crawl', '#octolog'],
 
   parsers: [
@@ -581,7 +582,24 @@ module.exports = {
         this.relay('Henzell', opt);
       }
     },
-
+    // Cheibriados
+    "%%": {
+      no_space: true,
+      description: "Pass an arbitrary command to Sequell: !!hs . OpBe",
+      response: function(opt) {
+        var i = opt.params.indexOf('.');
+        if (i > -1) opt.params[i] = opt.from;
+        opt.command = '%' + (opt.params.shift() || '');
+        this.relay('Cheibriados', opt);
+      }
+    },
+    "%??": {
+      no_space: true,
+      description: "Look up an entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Cheibriados', opt);
+      }
+    },
     // Gretell
     "@??": {
       no_space: true,
