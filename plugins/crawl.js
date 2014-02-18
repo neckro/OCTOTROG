@@ -269,14 +269,14 @@ module.exports = {
           this.emitP('get_gameinfo', info, 'x=src,gid,id,v', 'player_death')
           .get('extra_info')
           .then(function(v) {
-              // Parse the extra info
-              var out = {};
-              v.split(';').forEach(function(e) {
-                var p = e.split('=');
-                if (p.length === 2) out[p[0]] = p[1];
-              });
-              return out;
-            })
+            // Parse the extra info
+            var out = {};
+            v.split(';').forEach(function(e) {
+              var p = e.split('=');
+              if (p.length === 2) out[p[0]] = p[1];
+            });
+            return out;
+          })
         ]);
       })
       .spread(function(morgue, extra_info) {
