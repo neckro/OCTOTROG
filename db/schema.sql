@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS deaths_ (
+CREATE TABLE IF NOT EXISTS deaths (
   id INTEGER,
   server TEXT,
   version TEXT,
