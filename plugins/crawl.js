@@ -40,8 +40,13 @@ module.exports = {
         '(\\[([^\\]]+)\\] )?'           +// [src=cszo;id=2613578;v=0.13.0]
         '(\\w+) the ([\\w ]+) '         +// necKro23 the Ducker
         '\\(L(\\d\\d?) '                +// (L6
-        '(\\w\\w)(\\w\\w)\\), '         +// OpBe),
-        '(worshipper of ([\\w ]+), )?'  +// worshipper of Trog,
+        '(\\w\\w)(\\w\\w)'              +// OpBe
+
+        // Two different ways to show the religion, ugh:
+        '(\\), worshipper)?'            +// ), worshipper
+        '( of )?'                       +// of
+        '([\\w ]+)?\\)?, '              +// Trog), 
+
         '(.+?)'                         +// slain by an orc wizard
         '( [io]n '                      +// on 
         '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
@@ -58,19 +63,19 @@ module.exports = {
         xl: 9,
         race: 10,
         class: 11,
-        god: 13,
-        fate: 14,
-        place: 16,
-        vault: 19,
-        date: 21,
-        score: 22,
-        turns: 23,
-        duration: 24
+        god: 14,
+        fate: 15,
+        place: 17,
+        vault: 20,
+        date: 22,
+        score: 23,
+        turns: 24,
+        duration: 25
       },
       tests: [
         "axxe the Warrior (L13 MiFi), worshipper of Okawaru, succumbed to a naga ritualist's toxic radiance in D (Sprint), with 28919 points after 3753 turns and 0:07:59.",
-        "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe), worshipper of Trog, slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
-        "5. neckro23 the Cleaver (L12 MiBe), worshipper of Trog, demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08."
+        "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe of Trog), slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
+        "5. neckro23 the Cleaver (L12 MiBe of Trog), demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08."
       ]
     }, {
       event: 'player_milestone',
@@ -80,8 +85,10 @@ module.exports = {
         '(\\[([^\\]]+)\\] )?'           +// [src=cszo;v=0.13.0] 
         '(\\w+) (the ([\\w ]+) )?'      +// necKro23 the Ducker 
         '\\(L(\\d\\d?) '                +// (L6
-        '(\\w\\w)(\\w\\w)\\) '          +// OpBe) 
-        '(.*?) '                        +// killed Grinder on turn 2190. 
+        '(\\w\\w)(\\w\\w)'              +// OpBe
+        '( of ([\\w ]+))?'              +// of Trog
+        '\\) '                          +// ) 
+        '(.*?)\\.? '                    +// killed Grinder on turn 2190. 
         '\\((.+( \\(Sprint\\))?)\\)'    +// (D:3)
         '$',
       mapping: {
@@ -93,11 +100,12 @@ module.exports = {
         xl: 12,
         race: 13,
         class: 14,
-        milestone: 15,
-        place: 16
+        god: 16,
+        milestone: 17,
+        place: 18
       },
       tests: [
-        "27. [2013-10-12 03:53:52] [src=cszo;v=0.13.0] neckro23 the Ducker (L5 OpBe) killed Grinder on turn 2190. (D:3)",
+        "27. [2013-10-12 03:53:52] [src=cszo;v=0.13.0] neckro23 the Ducker (L5 OpBe of Trog) killed Grinder on turn 2190. (D:3)",
         "axxe (L12 MiFi) killed Erica. (D (Sprint))"
       ]
     }, {
@@ -201,6 +209,7 @@ module.exports = {
           from: from,
           privmsg: privmsg
         });
+        console.log("Detected Crawl event: ", parsed.event);
         deferred.resolve(this.emitP(parsed.event, parsed.info));
       } else {
         // No event to dispatch!
