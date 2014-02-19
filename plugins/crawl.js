@@ -352,6 +352,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "r??": {
+      no_space: true,
+      description: "Return random entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "s??": {
       no_space: true,
       description: "Search for an entry in LearnDB.",
