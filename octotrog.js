@@ -1,6 +1,6 @@
 "use strict";
 var irc = require('irc');
-var ircbot = require('./ircbot');
+var ircbot = require('./src/ircbot');
 
 var bot_options = {
   server: "irc.lunarnet.org",

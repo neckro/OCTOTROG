@@ -264,7 +264,7 @@ module.exports = {
       deferred.resolve(this.dispatch('check_watchlist', info.player)
       .bind(this)
       .then(function(watched) {
-        info.watched = watched;
+        info.watched = watched;   
         // Relay death event to channel if appropriate
         if (info.watched || info.privmsg) {
           this.relay_response(info.text, info.from);
