@@ -37,13 +37,17 @@ if (process.argv[2] === 'test') {
     relay_server: 'irc.freenode.net',
     relay_channels: ['#octotest']
   };
+  var bot = new ircbot(bot_options);
+  bot.load_plugin('database');
+  bot.load_plugin('crawl.www');
+} else {
+  var bot = new ircbot(bot_options);
+  bot.load_plugin('database');
+  bot.load_plugin('watchlist');
+  bot.load_plugin('dictionary');
+  bot.load_plugin('crawl', crawl_options);
+  bot.load_plugin('crawl.www');
 }
 
-var bot = new ircbot(bot_options);
-
-bot.load_plugin('database');
-bot.load_plugin('watchlist');
-bot.load_plugin('dictionary');
-bot.load_plugin('crawl', crawl_options);
 
 module.exports = bot;

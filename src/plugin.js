@@ -1,7 +1,6 @@
 // Plugin prototype
 "use strict";
 var util = require('util');
-var offer = require('offer');
 var events = require('events');
 var extend = require('extend');
 var foreach = require('foreach');

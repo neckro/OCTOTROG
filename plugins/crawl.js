@@ -1,6 +1,5 @@
 "use strict";
 var irc = require('irc');
-var offer = require('offer');
 var extend = require('extend');
 var foreach = require('foreach');
 var Promise = require('bluebird');

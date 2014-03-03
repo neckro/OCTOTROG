@@ -1,0 +1,141 @@
+mixin header
+  link(rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css")
+  link(rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=New+Rocker")
+  script(type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js")
+  meta(http-equiv="Content-Type" content="text/html;charset=utf-8")
+
+  title OCTOTROG
+
+  style.
+    table td, table th {
+      padding: 3px;
+      border: 1px solid black;
+    }
+    table th {
+      background-color: #ffaaaa;
+    }
+    table {
+      margin: .5em auto;
+      width: 100%;
+    }
+    h1, h2, h3, h4 {
+      font-family: "New Rocker";
+      font-weight: normal;
+      color: black;
+    }
+    h2 {
+      border-bottom: 1px solid black;
+    }
+    h3 {
+      padding-top: .5em;
+    }
+    h1 {
+      text-align: center;
+      font-size: 46px;
+      text-shadow:
+       1px  1px 2px red,
+      -1px  1px 2px red,
+       1px -1px 2px red,
+      -1px -1px 2px red;
+    }
+    h3 {
+      margin: 0;
+    }
+    p {
+      margin: 1em auto;
+    }
+    .expand-challenge {
+      margin-left: 1em;
+    }
+
+mixin footer
+  script(type="text/javascript").
+    $('document').ready(function() {
+      $('.expand-challenge').each(function(i, e) {
+        e = $(e);
+        e.html('(Expand)');
+        e.on('click', function(event) {
+          event.preventDefault();
+          var challenge_id = e.attr('challenge_id');
+          console.log(challenge_id);
+          if (!challenge_id) return;
+          e.fadeOut(200);
+          $.ajax({
+            url: '/ajax/challenge/' + challenge_id,
+            success: function(data) {
+              var table = e.parent().next('.table-outer');
+              table.slideUp(50, function() {
+                table.find('tbody').html(data);
+                table.slideDown(200);
+              });
+            }
+          });
+        });
+      });
+    });
+
+mixin page
+  html
+    head
+      +header
+    body
+      +octotrog
+      .container
+        block
+        +footer
+
+mixin octotrog
+  div(style='position: relative;')
+    img(src='octotrog.png' style='display: block; margin: 0 auto;')
+    div(style='position: absolute; bottom: -10px; width: 100%;')
+      h1.text-center
+        em OCTOTROG
+
+mixin table_header(games)
+  tr
+    each d, k in games[0]
+      if ['attempts', 'id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration'].indexOf(k) !== -1
+        case k
+          when 'xl'
+            th XL
+          when 'date'
+            th Date (UTC)
+          when 'morgue'
+            //- pass
+          default
+            th= k[0].toUpperCase() + k.substr(1)
+
+mixin table_data(game)
+  tr
+    each d, k in game
+      if ['attempts', 'id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration'].indexOf(k) !== -1
+        case k
+          when 'score'
+            td: a(href=game.morgue)
+              =d
+          when 'god'
+            td!= d == 'Trog' ? '<b>TROG</b>' : d
+          when 'fate'
+            td!= d.replace(/ \(/g, '<br />(')
+          default
+            td= d
+
+mixin show_games(games, title)
+    if title
+      h3!= title
+    if block
+      block
+    .table-outer
+      table
+        thead
+          +table_header(games)
+        tbody
+          each game in games
+            +table_data(game)
+
+mixin show_challenge_history(games)
+  for game in games
+    +show_games([game])
+      h3
+        = game.challenge_desc
+        a.expand-challenge(challenge_id=game.challenge_id href='#')
