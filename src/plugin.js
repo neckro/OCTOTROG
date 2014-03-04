@@ -85,13 +85,13 @@ extend(Plugin.prototype, {
   },
 
   // Use a filter function to see if a deferred in the queue can be resolved
-  queueResolve: function(event, data, filter) {
+  queueResolve: function(event, data, compare) {
     if (typeof this.expect_queue !== 'object') this.expect_queue = {};
     var out_queue = [], r = false;
     if (Array.isArray(this.expect_queue[event])) {
       this.expect_queue[event].forEach(function(e) {
-        if (e && e.deferred && e.deferred.resolve) {
-          if (filter(e.data, data)) {
+        if (e && e.deferred && e.deferred.resolve && e.deferred.promise.isPending()) {
+          if (compare(e.data, data)) {
             // Resolve it
             e.deferred.resolve(data);
             r = true;

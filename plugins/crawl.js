@@ -20,7 +20,7 @@ module.exports = {
     'Rotatelljr': 'cbro+'
   },
   // Max ms to wait for game info
-  info_timeout: 10 * 1000,
+  info_timeout: 15 * 1000,
   // Delay between game info requests
   info_retry_delay: 10 * 1000,
   // Max number of times to retry game info request
