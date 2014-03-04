@@ -39,7 +39,7 @@ module.exports = {
           keys.join(', '),
           placeholders.join(', ')
         );
-        this.emit('db_run', deferred, query, values);
+        deferred.resolve(this.emitP('db_run', query, values));
       }
     },
     'db_run': function(deferred) {

@@ -25,6 +25,7 @@ module.exports = {
   info_retry_delay: 10 * 1000,
   // Max number of times to retry game info request
   info_retry_limit: 6,
+  cron_interval: 20 * 1000,
 
   // IRC options
   relay_nick: 'OCTOTROG',
@@ -164,9 +165,14 @@ module.exports = {
     this.relay_client.addListener('error', function() {
       console.warn('relay client error:', arguments);
     });
+
+    this.cronTimer = setInterval(function() {
+      this.emitP('cron_event');
+    }.bind(this), this.cron_interval);
   },
 
   destroy: function() {
+    clearInterval(this.cronTimer);
     this.removeAllListeners();
     this.relay_client.disconnect();
   },
@@ -208,7 +214,7 @@ module.exports = {
           from: from,
           privmsg: privmsg
         });
-        console.log("Detected Crawl event: ", parsed.event);
+        console.log('Detected Crawl event: ', parsed.event);
         deferred.resolve(this.emitP(parsed.event, parsed.info));
       } else {
         // No event to dispatch!
@@ -233,7 +239,6 @@ module.exports = {
         ]
       });
       var promise = (this.queueExpect(info_type, info)
-      .bind(this)
       .timeout(this.info_timeout)
       .catch(Promise.TimeoutError, function() {
         if (retries < this.info_retry_limit) {
@@ -250,28 +255,11 @@ module.exports = {
         }
       }));
       deferred.resolve(promise);
-      return promise;
     },
 
-    'player_death': function(deferred, info) {
-      // Check resolution queue
-      if (this.queueCompare('player_death', info,
-        ['player', 'race', 'class', 'xl', 'turns', 'score']
-      )) return;
-
-      // Check watchlist
-      deferred.resolve(this.dispatch('check_watchlist', info.player)
-      .bind(this)
-      .then(function(watched) {
-        info.watched = watched;   
-        // Relay death event to channel if appropriate
-        if (info.watched || info.privmsg) {
-          this.relay_response(info.text, info.from);
-        } else {
-          // Stop event resolution, we don't care about this death event
-          throw "Not giving a fuck.";
-        }
-        return Promise.all([
+    'get_extra_info': function(deferred, info) {
+      deferred.resolve(
+        Promise.all([
           this.emitP('get_gameinfo', info, '-log', 'player_morgue')
           .get('morgue'),
           this.emitP('get_gameinfo', info, 'x=src,gid,id,v', 'player_death')
@@ -285,30 +273,65 @@ module.exports = {
             });
             return out;
           })
-        ]);
-      })
-      .spread(function(morgue, extra_info) {
-        extend(info, {
-          id: extra_info.id,
-          server: extra_info.src,
-          version: extra_info.v,
-          morgue: morgue
-        });
-        this.say(false,
-          "server: %s; id: %s; version: %s; morgue: %s",
-          info.server,
-          info.id,
-          info.version,
-          info.morgue
-        );
-        // Log everything to the database, if on watchlist
-        if (!info.watched) return info;
-        return (this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
-        .bind(this)
+        ])
+        .spread(function(morgue, extra_info) {
+          extend(info, {
+            id: extra_info.id,
+            server: extra_info.src,
+            version: extra_info.v,
+            morgue: morgue
+          });
+          return info;
+        })
+      );
+    },
+
+    'log_death': function(deferred, info) {
+      deferred.resolve(
+        this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
         .catch(function(e) {
+          console.log('log_death: database error', e);
           this.say_phrase('database_error', e);
-        }));
-      }));
+        })
+      );
+    },
+
+    'player_death': function(deferred, info) {
+      // Check resolution queue
+      if (this.queueCompare('player_death', info,
+        ['player', 'race', 'class', 'xl', 'turns', 'score']
+      )) return;
+
+      // Check watchlist
+      deferred.resolve(
+        this.dispatch('check_watchlist', info.player)
+        .then(function(watched) {
+          info.watched = watched;   
+          // Relay death event to channel if appropriate
+          if (info.watched || info.privmsg) {
+            this.relay_response(info.text, info.from);
+            var p = this.emitP('get_extra_info', info).bind(this);
+            if (info.watched) {
+              p.then(function(v) {
+                this.emitP('log_death', info);
+                return v;
+              });
+            }
+            return p;
+          }
+          // Necessary to throw here?
+          throw "Not giving a fuck.";
+        })
+        .then(function(info) {
+          this.say(false,
+            "server: %s; id: %s; version: %s; morgue: %s",
+            info.server,
+            info.id,
+            info.version,
+            info.morgue
+          );
+        })
+      );
     },
 
     'player_morgue': function(deferred, info) {
@@ -321,7 +344,6 @@ module.exports = {
 
     'player_milestone': function(deferred, info) {
       this.dispatch('check_watchlist', info.player)
-      .bind(this)
       .then(function(watched) {
         if (watched || info.privmsg) {
           this.relay_response(info.text, info.from);
@@ -329,6 +351,22 @@ module.exports = {
       });
       // TODO: check for ghost kills?
       // TODO: log milestones in database?
+    },
+
+    'cron_event': function(deferred) {
+      deferred.resolve(
+        this.dispatch('db_call', 'all', 'SELECT * FROM deaths WHERE id IS NULL ORDER BY score DESC LIMIT 1')
+        .then(function(res) {
+          if (res && res[0]) {
+            return this.emitP('get_extra_info', res[0]);
+          } else {
+            throw 'cron_event: database query error!';
+          }
+        })
+        .then(function(info) {
+          return this.emitP('log_death', info);
+        })
+      );
     }
   },
 

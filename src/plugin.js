@@ -66,7 +66,7 @@ extend(Plugin.prototype, {
     var args = Array.prototype.slice.call(arguments, 1);
     args.unshift(event, deferred);
     this.emit.apply(this, args);
-    return deferred.promise;
+    return deferred.promise.bind(this);
   },
 
   // Add a promise resolver to the event queue, or create a new one
@@ -81,7 +81,7 @@ extend(Plugin.prototype, {
       deferred: deferred,
       data: data
     });
-    return deferred.promise;
+    return deferred.promise.bind(this);
   },
 
   // Use a filter function to see if a deferred in the queue can be resolved
@@ -133,11 +133,11 @@ extend(Plugin.prototype, {
     foreach(this.channels, function(v, c) {
       args[0] = c;
       this.bot.say_phrase.apply(this.bot, args);
-    });
+    }, this);
   },
 
   dispatch: function() {
-    return this.bot.dispatch.apply(this.bot, arguments);
+    return this.bot.dispatch.apply(this.bot, arguments).bind(this);
   }
 
 });
