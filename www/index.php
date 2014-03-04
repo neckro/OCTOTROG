@@ -216,6 +216,8 @@ if (!empty($_GET['player'])) {
 } else {
   echo TrogReport::listPlayers();
   echo TrogReport::showHistory(10);
+  echo TrogReport::showCombo('Dg', 'Sk', '2014-03-03', '2014-03-09');
+  echo TrogReport::showCombo('HO', 'DK', '2014-02-24', '2014-03-02');
   echo TrogReport::showCombo('Fe', 'Su', '2014-02-17', '2014-02-23');
   echo TrogReport::showCombo('Og', 'Wz', '2014-02-10', '2014-02-16');
   echo TrogReport::showCombo('Sp', 'En', '2014-02-03', '2014-02-09');
