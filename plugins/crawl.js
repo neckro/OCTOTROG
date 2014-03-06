@@ -20,12 +20,12 @@ module.exports = {
     'Rotatelljr': 'cbro+'
   },
   // Max ms to wait for game info
-  info_timeout: 15 * 1000,
+  info_timeout: 60 * 1000,
   // Delay between game info requests
   info_retry_delay: 10 * 1000,
   // Max number of times to retry game info request
   info_retry_limit: 6,
-  cron_interval: 20 * 1000,
+  cron_interval: 60 * 1000,
 
   // IRC options
   relay_nick: 'OCTOTROG',
@@ -266,6 +266,7 @@ module.exports = {
           .get('extra_info')
           .then(function(v) {
             // Parse the extra info
+            if (typeof v !== 'string') throw 'get_extra_info: Bad info obtained!';
             var out = {};
             v.split(';').forEach(function(e) {
               var p = e.split('=');
@@ -310,7 +311,7 @@ module.exports = {
           // Relay death event to channel if appropriate
           if (info.watched || info.privmsg) {
             this.relay_response(info.text, info.from);
-            var p = this.emitP('get_extra_info', info).bind(this);
+            var p = this.emitP('get_extra_info', info);
             if (info.watched) {
               p.then(function(v) {
                 this.emitP('log_death', info);
