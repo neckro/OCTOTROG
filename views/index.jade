@@ -2,6 +2,6 @@ include includes
 +page
   h2 Current Status:
   +show_games(recent_games, 'Last ' + recent_games.length + ' Recorded Games')
-  +show_games(current_challenge, 'Current Challenge: ' + current_challenge[0].challenge_desc)
+  +show_games(challenge_current, 'Current Challenge: ' + challenge_current[0].challenge_desc)
   h2 Past Challenges:
   +show_challenge_history(challenge_history)

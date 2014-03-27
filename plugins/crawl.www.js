@@ -27,7 +27,7 @@ module.exports = {
     app.get('/', function(req, res) {
       Promise.props({
         'recent_games': self.emitP('recent_games'),
-        'current_challenge': self.emitP('current_challenge'),
+        'challenge_current': self.emitP('current_challenge'),
         'challenge_history': self.emitP('challenge_history')
       })
       .then(function(result) {
@@ -56,7 +56,7 @@ module.exports = {
       num_games = num_games || 5;
       deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM `deaths` ORDER BY `date` DESC LIMIT ?', num_games));
     },
-    'current_challenge': function(deferred) {
+    'challenge_current': function(deferred) {
       deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_current'));
     },
     'challenge_history': function(deferred) {
