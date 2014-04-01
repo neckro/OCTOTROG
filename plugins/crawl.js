@@ -1,6 +1,7 @@
 "use strict";
 var irc = require('irc');
 var extend = require('extend');
+var sprintf = require('sprintf');
 var foreach = require('foreach');
 var Promise = require('bluebird');
 
@@ -17,7 +18,8 @@ module.exports = {
     'Sizzell': 'cszo',
     'Lantell': 'clan',
     'Rotatell': 'cbro',
-    'Rotatelljr': 'cbro+'
+    'Rotatelljr': 'cbro+',
+    'neckro': true
   },
   // Max ms to wait for game info
   info_timeout: 60 * 1000,
@@ -49,7 +51,7 @@ module.exports = {
 
         '(.+?)'                         +// slain by an orc wizard
         '( \\(kmap: ([\\w]+)\\))?'      +// (kmap: whatever)
-        '( [io]n '                      +// on 
+        '( ([io]n) '                    +// on 
         '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
         '( \\(([^)]*)\\))?'             +// (vault_name) 
         '( on ([-0-9]+ [:0-9]+))?, '    +// on 2013-10-12 03:54:15, 
@@ -67,12 +69,13 @@ module.exports = {
         god: 14,
         fate: 15,
         kmap: 17,
-        place: 19,
-        vault: 22,
-        date: 24,
-        score: 25,
-        turns: 26,
-        duration: 27
+        preposition: 19,
+        place: 20,
+        vault: 23,
+        date: 25,
+        score: 26,
+        turns: 27,
+        duration: 28
       },
       tests: [
         "axxe the Warrior (L13 MiFi), worshipper of Okawaru, succumbed to a naga ritualist's toxic radiance in D (Sprint), with 28919 points after 3753 turns and 0:07:59.",
@@ -310,7 +313,7 @@ module.exports = {
       deferred.resolve(
         this.dispatch('check_watchlist', info.player)
         .then(function(watched) {
-          info.watched = watched;   
+          info.watched = watched;
           // Relay death event to channel if appropriate
           if (info.watched || info.privmsg) {
             this.relay_response(info.text, info.from);
@@ -320,6 +323,12 @@ module.exports = {
                 this.emitP('log_death', info);
                 return v;
               });
+              if (!info.privmsg) {
+                // Tweet death event if appropriate
+                p.then(function(v) {
+                  return this.dispatch('death_tweet', info);
+                });
+              }
             }
             return p;
           }

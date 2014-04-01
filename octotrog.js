@@ -1,6 +1,7 @@
 "use strict";
 var irc = require('irc');
 var ircbot = require('./src/ircbot');
+var secrets = require('./secrets.js');
 
 var bot_options = {
   server: "irc.lunarnet.org",
@@ -45,5 +46,6 @@ bot.load_plugin('dictionary');
 bot.load_plugin('crawl.watchlist');
 bot.load_plugin('crawl', crawl_options || {});
 bot.load_plugin('crawl.www');
+bot.load_plugin('crawl.twitter', {auth_tokens: secrets.twitter});
 
 module.exports = bot;
