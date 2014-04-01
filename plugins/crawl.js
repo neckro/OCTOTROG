@@ -48,6 +48,7 @@ module.exports = {
         '([\\w ]+)?\\)?, '              +// Trog), 
 
         '(.+?)'                         +// slain by an orc wizard
+        '( \\(kmap: ([\\w]+)\\))?'      +// (kmap: whatever)
         '( [io]n '                      +// on 
         '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
         '( \\(([^)]*)\\))?'             +// (vault_name) 
@@ -65,17 +66,19 @@ module.exports = {
         class: 11,
         god: 14,
         fate: 15,
-        place: 17,
-        vault: 20,
-        date: 22,
-        score: 23,
-        turns: 24,
-        duration: 25
+        kmap: 17,
+        place: 19,
+        vault: 22,
+        date: 24,
+        score: 25,
+        turns: 26,
+        duration: 27
       },
       tests: [
         "axxe the Warrior (L13 MiFi), worshipper of Okawaru, succumbed to a naga ritualist's toxic radiance in D (Sprint), with 28919 points after 3753 turns and 0:07:59.",
         "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe of Trog), slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
-        "5. neckro23 the Cleaver (L12 MiBe of Trog), demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08."
+        "5. neckro23 the Cleaver (L12 MiBe of Trog), demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08.",
+        "4. TheNoid the Slayer (L27 VpNe of Kikubaaqudgha), blasted by a smoke demon (divine providence) (kmap: evilmike_mini_pan_T) in Pandemonium on 2014-03-17 21:47:41, with 763206 points after 112223 turns and 10:51:26."
       ]
     }, {
       event: 'player_milestone',
