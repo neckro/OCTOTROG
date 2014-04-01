@@ -1,4 +1,5 @@
 "use strict";
+var foreach = require('foreach');
 var express = require('express');
 var engines = require('consolidate');
 var http = require('http');
@@ -27,8 +28,8 @@ module.exports = {
     app.get('/', function(req, res) {
       Promise.props({
         'recent_games': self.emitP('recent_games'),
-        'challenge_current': self.emitP('current_challenge'),
-        'challenge_history': self.emitP('challenge_history')
+        'challenges_current': self.emitP('challenges_current'),
+        'challenges_history': self.emitP('challenges_history')
       })
       .then(function(result) {
         res.render('index.jade', result);
@@ -37,7 +38,7 @@ module.exports = {
 
     app.get('/ajax/challenge/:challenge_id', function(req, res) {
       Promise.props({
-        'games': self.emitP('ajax_challenge', req.params.challenge_id)
+        'games': self.emitP('challenges_ajax', req.params.challenge_id)
       })
       .then(function(result) {
         res.render('ajax_game_table.jade', result);
@@ -56,13 +57,37 @@ module.exports = {
       num_games = num_games || 5;
       deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM `deaths` ORDER BY `date` DESC LIMIT ?', num_games));
     },
-    'challenge_current': function(deferred) {
-      deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_current'));
+    'challenges_current': function(deferred) {
+      deferred.resolve(
+        this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE CURRENT_TIMESTAMP BETWEEN start AND end')
+        .then(function(v) {
+          return this.emitP('challenge_data', v, -1);
+        })
+      );
     },
-    'challenge_history': function(deferred) {
-      deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_winners ORDER BY challenge_id DESC'));
+    'challenges_history': function(deferred) {
+      deferred.resolve(
+        this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE end < CURRENT_TIMESTAMP ORDER BY end_date DESC')
+        .then(function(v) {
+          return this.emitP('challenge_data', v, 1);
+        })
+      );
     },
-    'ajax_challenge': function(deferred, challenge_id) {
+    'challenge_data': function(deferred, challenges, limit) {
+      limit = limit || -1;
+      var promise_list = [];
+      foreach(challenges, function(c) {
+        promise_list.push(
+          this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC LIMIT ?', c.challenge_id, limit)
+          .then(function(v) {
+            c.games = v;
+            return c;
+          })
+        );
+      }, this);
+      return deferred.resolve(Promise.all(promise_list));
+    },
+    'challenges_ajax': function(deferred, challenge_id) {
       deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC', challenge_id));
     }
   }

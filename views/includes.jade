@@ -136,9 +136,12 @@ mixin show_games(games, title)
           each game in games
             +table_data(game)
 
-mixin show_challenge_history(games)
-  for game in games
-    +show_games([game])
+mixin show_challenges(challenges, expandable)
+  if !challenges || challenges.length == 0
+    p= 'No challenges found!'
+  for ch in challenges
+    if ch
       h3
-        = game.challenge_desc
-        a.expand-challenge(challenge_id=game.challenge_id href='#')
+        = 'Top ' + ch.race + ch.class + ', ' + ch.start_date + ' through ' + ch.end_date
+        a.expand-challenge(challenge_id=ch.challenge_id href='#')
+      +show_games(ch.games)
