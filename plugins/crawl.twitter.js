@@ -30,6 +30,8 @@ module.exports = {
     max_length = max_length || 140;
     var text = '';
     for (var i = 0; i < tweet_array.length; i++) {
+      if (typeof tweet_array[i] === 'undefined') continue;
+      if (typeof tweet_array[i] === 'object') continue;
       if (text.length + tweet_array[i].length <= max_length) {
         text += tweet_array[i];
       }
