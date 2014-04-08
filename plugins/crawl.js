@@ -380,14 +380,12 @@ module.exports = {
     },
 
     'player_milestone': function(deferred, info) {
-      this.dispatch('check_watchlist', info.player)
+      this.dispatch('check_watchlist', [info.player, info.ghost_kill])
       .then(function(watched) {
         if (watched || info.privmsg) {
           this.relay_response(info.text, info.from);
         }
       });
-      // TODO: check for ghost kills?
-      // TODO: log milestones in database?
     },
 
     'cron_event': function(deferred) {

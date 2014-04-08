@@ -75,11 +75,19 @@ module.exports = {
   },
 
   listeners: {
-    'check_watchlist': function(deferred, name, no_update) {
-      if (typeof name !== 'string') deferred.reject();
-      var check = !!(this.watchlist[name.toLowerCase()]);
+    'check_watchlist': function(deferred, names, no_update) {
+      if (typeof names === 'string') {
+        names = [names];
+      }
+      if (!Array.isArray(names)) return deferred.reject();
+      var player;
+      var check = names.some(function(n) {
+        if (typeof n !== 'string') return;
+        player = n;
+        return !!(this.watchlist[player.toLowerCase()]);
+      }, this);
       if (check && !no_update) {
-        this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', name);
+        this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', player);
       }
       deferred.resolve(check);
     },
