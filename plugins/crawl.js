@@ -44,7 +44,10 @@ module.exports = {
         '( of )?'                       +// of
         '([\\w ]+)?\\)?, '              +// Trog), 
 
-        '(.+?)'                         +// slain by an orc wizard
+        '('                             +//(
+        '(.*?(\\w+)\'s? ghost.*?)|'     +// slain by whoever's ghost
+        '(.*?)'                         +// did whatever
+        ')'                             +//)
         '( \\(kmap: ([\\w]+)\\))?'      +// (kmap: whatever)
         '( ([io]n) '                    +// on 
         '(\\w+(:?\\d?\\d?)?))?'         +// D:3 
@@ -63,20 +66,22 @@ module.exports = {
         class: 11,
         god: 14,
         fate: 15,
-        kmap: 17,
-        preposition: 19,
-        place: 20,
-        vault: 23,
-        date: 25,
-        score: 26,
-        turns: 27,
-        duration: 28
+        ghost_killer: 17,
+        kmap: 20,
+        preposition: 22,
+        place: 23,
+        vault: 26,
+        date: 28,
+        score: 29,
+        turns: 30,
+        duration: 31
       },
       tests: [
         "axxe the Warrior (L13 MiFi), worshipper of Okawaru, succumbed to a naga ritualist's toxic radiance in D (Sprint), with 28919 points after 3753 turns and 0:07:59.",
         "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe of Trog), slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
         "5. neckro23 the Cleaver (L12 MiBe of Trog), demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08.",
-        "4. TheNoid the Slayer (L27 VpNe of Kikubaaqudgha), blasted by a smoke demon (divine providence) (kmap: evilmike_mini_pan_T) in Pandemonium on 2014-03-17 21:47:41, with 763206 points after 112223 turns and 10:51:26."
+        "4. TheNoid the Slayer (L27 VpNe of Kikubaaqudgha), blasted by a smoke demon (divine providence) (kmap: evilmike_mini_pan_T) in Pandemonium on 2014-03-17 21:47:41, with 763206 points after 112223 turns and 10:51:26.",
+        "1. [id=3111623;v=0.15.0-a0] Runemage the Magician (L8 VSEn of Okawaru), succumbed to guido's ghost's poison on D:5 on 2014-04-08 21:54:18, with 1347 points after 7371 turns and 0:36:35."
       ]
     }, {
       event: 'player_milestone',
@@ -335,38 +340,38 @@ module.exports = {
 
       // Check watchlist
       deferred.resolve(
-        this.dispatch('check_watchlist', info.player)
-        .then(function(watched) {
+        Promise.all([
+          this.dispatch('check_watchlist', info.player),
+          this.dispatch('check_watchlist', info.ghost_killer)
+        ])
+        .bind(this)
+        .spread(function(watched, ghost) {
           info.watched = watched;
           // Relay death event to channel if appropriate
-          if (info.watched || info.privmsg) {
+          if (info.privmsg || watched || ghost) {
             this.relay_response(info.text, info.from);
+          }
+          if (info.privmsg || watched) {
             var p = this.emitP('get_extra_info', info);
-            if (info.watched) {
+            p.then(function(info) {
+              this.say(false,
+                "server: %s; id: %s; version: %s; morgue: %s",
+                info.server,
+                info.id,
+                info.version,
+                info.morgue
+              );
+            });
+            if (watched) {
               p.then(function(v) {
-                this.emitP('log_death', info);
-                return v;
+                return this.emitP('log_death', info);
               });
-              if (!info.privmsg) {
-                // Tweet death event if appropriate
-                p.then(function(v) {
-                  return this.dispatch('death_tweet', info);
-                });
-              }
+              p.then(function(v) {
+                return this.dispatch('death_tweet', info);
+              });
             }
             return p;
           }
-          // Necessary to throw here?
-          throw "Not giving a fuck.";
-        })
-        .then(function(info) {
-          this.say(false,
-            "server: %s; id: %s; version: %s; morgue: %s",
-            info.server,
-            info.id,
-            info.version,
-            info.morgue
-          );
         })
       );
     },
