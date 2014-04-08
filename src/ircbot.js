@@ -18,8 +18,6 @@ var defaults = {
   plugin_path: '../plugins',
   max_line_length: 400,
   irc: {
-    stripColors: false,
-    floodProtection: true,
     channels: []
   }
 };

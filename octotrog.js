@@ -1,7 +1,7 @@
 "use strict";
 var irc = require('irc');
+var extend = require('extend');
 var ircbot = require('./src/ircbot');
-var secrets = require('./secrets.js');
 
 var bot_options = {
   server: "irc.lunarnet.org",
@@ -12,6 +12,8 @@ var bot_options = {
     realName: "OCTOTROG",
     debug: true,
     showErrors: true,
+    stripColors: false,
+    floodProtection: true
   },
   sayings: {
     greeting: "kill them all?",
@@ -30,22 +32,41 @@ var bot_options = {
   }
 };
 
+var crawl_options = {
+  relay_nick: 'OCTOTROG',
+  relay_server: 'irc.freenode.net',
+  relay_channels: ['##crawl'],
+  irc: {
+    userName: "octotrog",
+    realName: "OCTOTROG",
+    debug: true,
+    showErrors: true,
+    stripColors: false,
+    floodProtection: true
+  },
+};
+
 if (process.argv[2] === 'test') {
-  bot_options.main_channel = '#octotest';
-  bot_options.nick = 'TESTTROG';
-  var crawl_options = {
+  extend(bot_options, {
+    main_channel: '#octotest',
+    nick: 'TESTTROG'
+  });
+  extend(crawl_options, {
     relay_nick: 'TESTTROG',
     relay_server: 'irc.freenode.net',
     relay_channels: ['#octotest']
-  };
+  });
 }
 
 var bot = new ircbot(bot_options);
 bot.load_plugin('database');
 bot.load_plugin('dictionary');
 bot.load_plugin('crawl.watchlist');
-bot.load_plugin('crawl', crawl_options || {});
+bot.load_plugin('crawl', crawl_options);
 bot.load_plugin('crawl.www');
-bot.load_plugin('crawl.twitter', {auth_tokens: secrets.twitter});
+try {
+  var secrets = require('./secrets.js');
+  bot.load_plugin('crawl.twitter', { auth_tokens: secrets.twitter });
+} catch (e) {}
 
 module.exports = bot;

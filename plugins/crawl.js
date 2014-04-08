@@ -29,11 +29,6 @@ module.exports = {
   info_retry_limit: 6,
   cron_interval: 60 * 1000,
 
-  // IRC options
-  relay_nick: 'OCTOTROG',
-  relay_server: 'chat.freenode.net',
-  relay_channels: ['##crawl', '#octolog'],
-
   parsers: [
     {
       event: 'player_death',
@@ -159,17 +154,18 @@ module.exports = {
   ],
 
   init: function() {
-    var options = extend({}, this.bot.irc || {}, {
-      channels: ['##crawl']
+    var options = extend(this.irc || {}, {
+      channels: this.relay_channels
     });
-    this.relay_nick = this.bot.relay_nick || this.bot.nick || 'OCTOTROG';
-    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, extend({}, this.bot.irc, { channels: this.relay_channels }));
+    this.relay_nick = this.relay_nick || this.bot.nick;
+    this.relay_server = this.relay_server || this.bot.server;
+    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, options);
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (!this.relay_bots[nick]) return;
-      this.emitP('crawl_event', text, nick, (to === this.bot.nick));
+      this.emitP('crawl_event', text, nick, (to === this.relay_nick));
     }.bind(this));
     this.relay_client.addListener('error', function() {
-      console.warn('relay client error:', arguments);
+      console.warn('Relay client error:', arguments);
     });
 
     this.cronTimer = setInterval(function() {
