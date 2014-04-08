@@ -81,21 +81,34 @@ module.exports = {
     }, {
       event: 'player_milestone',
       regex: '^' +
-        '((\\d+)(/\\d+)?(\\. ))?'       +// 660/661. 
-        '(\\[([-0-9]+ [:0-9]+)\\] )?'   +// [2013-10-12 03:53:52] 
-        '(\\[([^\\]]+)\\] )?'           +// [src=cszo;v=0.13.0] 
-        '(\\w+) (the ([\\w ]+) )?'      +// necKro23 the Ducker 
-        '\\(L(\\d\\d?) '                +// (L6
-        '(\\w\\w)(\\w\\w)'              +// OpBe
+        '((\\d+)(/\\d+)?(\\. ))?'       +// 1/2. 
+        '(\\[([-0-9]+ [:0-9]+)\\] )?'   +// [2013-09-27 23:08:55] 
+        '(\\[([^\\]]+)\\] )?'           +// [src=cszo;v=0.13.0-b1] 
+        '(\\w+) (the ([\\w ]+) )?'      +// necKro23 the Chopper 
+        '\\(L(\\d\\d?) '                +// (L4
+        '(\\w\\w)(\\w\\w)'              +// MiBe 
         '( of ([\\w ]+))?'              +// of Trog
         '\\) '                          +// ) 
-        '(.*?)\\.? '                    +// killed Grinder on turn 2190. 
-        '\\((.+( \\(Sprint\\))?)\\)'    +// (D:3)
+        '('                             +//{
+        '(killed '                      +//(killed 
+        '((the ghost of '               +//(the ghost of 
+        '(\\w+) the (\\w+), an? '       +// johnstein the Poker, a 
+        '(\\w+) (\\w\\w)(\\w\\w)'       +// weakling MfBe 
+        '( of ([\\w ]+))?'              +// of Trog
+        ')?([\\w ]+?)?'                 +//) (or whoever)
+        '))?'                           +//)
+        '(began ([\\w ]+))?'            +// began whatever
+        '(entered ([\\w ]+))?'          +// entered wherever
+        '(found an? (.+?) rune of Zot)?'+// found a silver rune of Zot
+        '(found the Orb of Zot\\!)?'    +// found the Orb of Zot!
+        ')'                             +//}
+        '( on turn (\\d+))?\\.?'        +//  on turn 1827.
+        ' \\((.+( \\(Sprint\\))?)\\)'   +//  (D:3)
         '$',
       mapping: {
         result_num: 2,
-        date: 5,
-        extra_info: 7,
+        date: 6,
+        extra_info: 8,
         player: 9,
         title: 11,
         xl: 12,
@@ -103,11 +116,21 @@ module.exports = {
         class: 14,
         god: 16,
         milestone: 17,
-        place: 18
+        kill: 19,
+        ghost_kill: 21,
+        rune: 34,
+        orb: 35,
+        turn: 37,
+        place: 38
       },
       tests: [
+        "1/2. [2013-09-27 23:08:55] [src=cszo;v=0.13.0-b1] neckro23 the Chopper (L4 MiBe of Trog) killed the ghost of johnstein the Poker, a weakling MfBe of Trog on turn 1827. (D:3)",
         "27. [2013-10-12 03:53:52] [src=cszo;v=0.13.0] neckro23 the Ducker (L5 OpBe of Trog) killed Grinder on turn 2190. (D:3)",
-        "axxe (L12 MiFi) killed Erica. (D (Sprint))"
+        "axxe (L12 MiFi) killed Erica. (D (Sprint))",
+        "necKro23 (L8 MiHu) killed the ghost of johnstein the Archer, an average CeHu of Nemelex Xobeh. (D:5)",
+        "odiv (L24 CeHu) found a silver rune of Zot. (Vaults:5)",
+        "19. [2014-04-03 21:07:26] TheNoid the Slayer (L27 CeHu of Okawaru) found the Orb of Zot! (Zot:5)",
+        "150. [2014-04-03 20:27:52] TheNoid the Slayer (L26 CeHu of Okawaru) found an abyssal rune of Zot on turn 91126. (Abyss:3)"
       ]
     }, {
       event: 'player_morgue',
@@ -192,9 +215,9 @@ module.exports = {
 
   parse_message: function(parsers, text) {
     // Check the parsers for first event match
-    var event, info = {};
+    var event, info = {}, matches;
     parsers.some(function(p) {
-      var matches = text.match(p.regex);
+      matches = text.match(p.regex);
       if (matches === null) return;
       event = p.event;
       foreach(p.mapping, function(i, n) {
@@ -202,7 +225,12 @@ module.exports = {
       });
       return true;
     });
-    return { event: event, info: info };
+    return {
+      event: event,
+      info: info,
+      matches: matches,
+      text: text
+    };
   },
 
   listeners: {

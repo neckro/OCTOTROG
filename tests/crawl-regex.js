@@ -6,6 +6,5 @@ crawl.parsers.forEach(function(p) {
     var parsed = crawl.parse_message(crawl.parsers, t);
     console.log(t);
     console.log(parsed.info);
-    console.log(twitter.death_tweet_text(parsed.info));
   });
 });
