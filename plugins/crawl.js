@@ -103,7 +103,7 @@ module.exports = {
         ')?([\\w ]+?)?'                 +//) (or whoever)
         '))?'                           +//)
         '(began ([\\w ]+))?'            +// began whatever
-        '(entered ([\\w ]+))?'          +// entered wherever
+        '((enter)|(reach)ed ([\\w ]+))?'+// entered/reached wherever
         '(found an? (.+?) rune of Zot)?'+// found a silver rune of Zot
         '(found the Orb of Zot\\!)?'    +// found the Orb of Zot!
         ')'                             +//}
@@ -123,10 +123,10 @@ module.exports = {
         milestone: 17,
         kill: 19,
         ghost_kill: 21,
-        rune: 34,
-        orb: 35,
-        turn: 37,
-        place: 38
+        rune: 36,
+        orb: 37,
+        turn: 39,
+        place: 40
       },
       tests: [
         "1/2. [2013-09-27 23:08:55] [src=cszo;v=0.13.0-b1] neckro23 the Chopper (L4 MiBe of Trog) killed the ghost of johnstein the Poker, a weakling MfBe of Trog on turn 1827. (D:3)",
@@ -135,7 +135,8 @@ module.exports = {
         "necKro23 (L8 MiHu) killed the ghost of johnstein the Archer, an average CeHu of Nemelex Xobeh. (D:5)",
         "odiv (L24 CeHu) found a silver rune of Zot. (Vaults:5)",
         "19. [2014-04-03 21:07:26] TheNoid the Slayer (L27 CeHu of Okawaru) found the Orb of Zot! (Zot:5)",
-        "150. [2014-04-03 20:27:52] TheNoid the Slayer (L26 CeHu of Okawaru) found an abyssal rune of Zot on turn 91126. (Abyss:3)"
+        "150. [2014-04-03 20:27:52] TheNoid the Slayer (L26 CeHu of Okawaru) found an abyssal rune of Zot on turn 91126. (Abyss:3)",
+        "odiv (L26 CeHu) reached level 5 of the Realm of Zot. (Zot:5)"
       ]
     }, {
       event: 'player_morgue',
