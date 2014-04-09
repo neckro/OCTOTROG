@@ -79,7 +79,7 @@ module.exports = {
       if (typeof names === 'string') {
         names = [names];
       }
-      if (!Array.isArray(names)) return deferred.reject();
+      if (!Array.isArray(names)) return deferred.resolve(false);
       var player;
       var check = names.some(function(n) {
         if (typeof n !== 'string') return;
