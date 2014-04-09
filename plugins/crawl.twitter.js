@@ -60,9 +60,9 @@ module.exports = {
   },
 
   milestone_tweet_text: function(info) {
-    if (info.rune || info.orb) {
-      return info.text;
-    }
+    var out = info.text;
+    if (info.webtiles && out.length < 112) out += ' Watch: ' + info.webtiles;
+    return out;
   }
 
 };

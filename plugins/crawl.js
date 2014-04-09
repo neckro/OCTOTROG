@@ -11,15 +11,33 @@ module.exports = {
 
   // Listen for these nicks
   relay_bots: {
-    'Sequell': true,
-    'Cheibriados' : true,
-    'Henzell': 'cao',
-    'Gretell': 'cdo',
-    'Sizzell': 'cszo',
-    'Lantell': 'clan',
-    'Rotatell': 'cbro',
-    'Rotatelljr': 'cbro+',
-    'neckro': true
+    'neckro': {
+      watch: '^watch'
+    },
+    'Sequell': {},
+    'Cheibriados' : {},
+    'Henzell': {
+      code: 'cao',
+      watch: '!watch'
+    },
+    'Gretell': {
+      code: 'cdo'
+    },
+    'Sizzell': {
+      code: 'cszo',
+      watch: '%watch'
+    },
+    'Lantell': {
+      code: 'clan',
+      watch: '$watch'
+    },
+    'Rotatell': {
+      code: 'cbro',
+      watch: '^watch'
+    },
+    'Rotatelljr': {
+      code: 'cbro+'
+    }
   },
   // Max ms to wait for game info
   info_timeout: 60 * 1000,
@@ -179,6 +197,16 @@ module.exports = {
       tests: [
         "No games for neckro23 (OpBe xl=6 turns=2207 score=500)."
       ]
+    }, {
+      event: 'player_webtiles',
+      regex: '^Watch (\\w+) at: (.+)$',
+      mapping: {
+        player: 1,
+        webtiles: 2
+      },
+      tests: [
+        "Watch necKro23 at: http://crawl.berotato.org:8080/#watch-necKro23"
+      ]
     }
   ],
 
@@ -214,7 +242,7 @@ module.exports = {
 
   relay_response: function(text, from) {
     var echo = text;
-    var server = from && this.relay_bots[from];
+    var server = from && this.relay_bots[from] && this.relay_bots[from].code;
     if (typeof server === 'string') echo += ' [' + server + ']';
     this.say(false, echo);
   },
@@ -323,6 +351,26 @@ module.exports = {
       );
     },
 
+    'get_webtiles': function(deferred, info) {
+      var cmd = info.from && this.relay_bots[info.from] && this.relay_bots[info.from].watch;
+      if (!cmd) return deferred.resolve(info);
+      this.relay(info.from, {
+        command: cmd,
+        params: [
+          info.player
+        ]
+      });
+      deferred.resolve(
+        this.queueExpect('webtiles', info)
+        .timeout(this.info_timeout)
+        .catch(Promise.TimeoutError, deferred.resolve)
+        .then(function(w) {
+          info.webtiles = w.webtiles;
+          return info;
+        })
+      );
+    },
+
     'log_death': function(deferred, info) {
       deferred.resolve(
         this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
@@ -381,7 +429,13 @@ module.exports = {
       if (this.queueCompare('player_morgue', info,
         ['player', 'race', 'class', 'xl', 'turns', 'score']
       )) return;
+      if (info.privmsg) this.say(false, info.text);
+    },
 
+    'player_webtiles': function(deferred, info) {
+      if (this.queueCompare('webtiles', info,
+        ['player']
+      )) return;
       if (info.privmsg) this.say(false, info.text);
     },
 
@@ -397,8 +451,12 @@ module.exports = {
             this.relay_response(info.text, info.from);
           }
           if (!info.privmsg && watched) {
-            // Watched player milestone just happened
-            this.dispatch('milestone_tweet', info);
+            if (info.rune || info.orb) {
+              this.emitP('get_webtiles', info)
+              .then(function(info) {
+                this.dispatch('milestone_tweet', info);
+              });
+            }
           }
         })
       );

@@ -17,7 +17,7 @@ module.exports = {
   },
 
   commands: {
-    "watch": {
+    "addwatch": {
       description: "Watch a user. (Crawl name, NOT IRC nick!)",
       response: function(opt) {
         var nick = opt.params.shift();
