@@ -35,7 +35,7 @@ var bot_options = {
 var crawl_options = {
   relay_nick: 'OCTOTROG',
   relay_server: 'irc.freenode.net',
-  relay_channels: ['##crawl'],
+  relay_channels: ['##crawl', '#octolog'],
   irc: {
     userName: "octotrog",
     realName: "OCTOTROG",
