@@ -27,10 +27,12 @@ module.exports = {
           if (val) {
             opt.reply_phrase('watched_already', nick);
           } else {
-            return (self.emitP('modify_watchlist', nick, true)
-            .then(function() {
-              opt.reply_phrase('watch_added', nick);
-            }));
+            return (
+              self.emitP('modify_watchlist', nick, true)
+              .then(function() {
+                opt.reply_phrase('watch_added', nick);
+              })
+            );
           }
         })
         .catch(function() {
