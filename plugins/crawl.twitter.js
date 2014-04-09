@@ -53,7 +53,7 @@ module.exports = {
           info.race + info.class,
           info.fate.replace(/ \(.+\)/, '')
         ),
-        sprintf(' %s %s', info.preposition, info.place),
+        info.preposition ? sprintf(' %s %s', info.preposition, info.place) : '',
         sprintf(' with %s points', info.score),
         sprintf(' after %s turns', info.turns)
       ], 118) + ': ' + info.morgue;
