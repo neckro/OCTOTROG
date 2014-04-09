@@ -366,7 +366,7 @@ module.exports = {
               p.then(function(v) {
                 return this.emitP('log_death', info);
               });
-              p.then(function(v) {
+              if (!info.privmsg) p.then(function(v) {
                 return this.dispatch('death_tweet', info);
               });
             }
@@ -385,12 +385,22 @@ module.exports = {
     },
 
     'player_milestone': function(deferred, info) {
-      this.dispatch('check_watchlist', [info.player, info.ghost_kill])
-      .then(function(watched) {
-        if (watched || info.privmsg) {
-          this.relay_response(info.text, info.from);
-        }
-      });
+      deferred.resolve(
+        Promise.all([
+          this.dispatch('check_watchlist', info.player),
+          this.dispatch('check_watchlist', info.ghost_kill)
+        ])
+        .bind(this)
+        .spread(function(watched, ghost) {
+          if (info.privmsg || watched || ghost) {
+            this.relay_response(info.text, info.from);
+          }
+          if (!info.privmsg && watched) {
+            // Watched player milestone just happened
+            this.dispatch('milestone_tweet', info);
+          }
+        })
+      );
     },
 
     'cron_event': function(deferred) {

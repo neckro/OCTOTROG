@@ -16,6 +16,7 @@ module.exports = {
 
   listeners: {
     'tweet': function(deferred, msg) {
+      if (!msg) return;
       console.log("Tweeting: " + msg);
       this.twitter.updateStatus(msg, function(response) {
         deferred.resolve(response);
@@ -23,6 +24,9 @@ module.exports = {
     },
     'death_tweet': function(deferred, info) {
       deferred.resolve(this.emitP('tweet', this.death_tweet_text(info)));
+    },
+    'milestone_tweet': function(deferred, info) {
+      deferred.resolve(this.emitP('tweet', this.milestone_tweet_text(info)));
     }
   },
 
@@ -53,6 +57,12 @@ module.exports = {
         sprintf(' with %s points', info.score),
         sprintf(' after %s turns', info.turns)
       ], 118) + ': ' + info.morgue;
+  },
+
+  milestone_tweet_text: function(info) {
+    if (info.rune || info.orb) {
+      return info.text;
+    }
   }
 
 };
