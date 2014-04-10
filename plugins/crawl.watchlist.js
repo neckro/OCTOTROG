@@ -85,8 +85,8 @@ module.exports = {
       var player;
       var check = names.some(function(n) {
         if (typeof n !== 'string') return;
-        player = n;
-        return !!(this.watchlist[player.toLowerCase()]);
+        player = n.toLowerCase();
+        return !!(this.watchlist[player]);
       }, this);
       if (check && !no_update) {
         this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', player);
