@@ -425,6 +425,19 @@ module.exports = {
     },
 
     'player_milestone': function(deferred, info) {
+      if (typeof info.milestone !== 'string') return;
+      var match;
+      // check for ghost kill
+      match = info.milestone.match(/(killed the ghost of (\w+))/);
+      if (match) {
+        info.ghost_kill = match[2];
+      }
+      // check for rune/Orb
+      match = info.milestone.match(/found (an? (\w+) rune)?(the Orb)? of Zot/);
+      if (match) {
+        info.rune = match[2] || 'orb';
+      }
+
       deferred.resolve(
         Promise.all([
           this.dispatch('check_watchlist', info.player),
@@ -436,7 +449,7 @@ module.exports = {
             this.relay_response(info.text, info.from);
           }
           if (!info.privmsg && watched) {
-            if (info.rune || info.orb) {
+            if (info.rune) {
               this.emitP('get_webtiles', info)
               .then(function(info) {
                 this.dispatch('milestone_tweet', info);
