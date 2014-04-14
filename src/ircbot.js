@@ -10,6 +10,7 @@ var sprintf = require('sprintf');
 var vsprintf = sprintf.vsprintf;
 var Promise = require('bluebird');
 var Plugin = require('./plugin');
+var Logger = require('./logger');
 
 var dispatch_timeout = 30000;
 
@@ -31,22 +32,23 @@ var Bot = module.exports = function(opt) {
 util.inherits(Bot, events.EventEmitter);
 
 extend(Bot.prototype, {
+  name: 'ircbot',
   init: function() {
-    var self = this;
     this.client = new irc.Client(this.server, this.nick, this.irc);
+    this.log = new Logger(this.logs, this, '[OCTOTROG]');
+    this.log.bind_listeners(this.client, 'irc');
     events.EventEmitter.call(this);
     this.plugins = {};
     // add bot event listeners
     foreach(this.listeners, function(l, e) {
-      self.addListener(e, l.bind(self));
-    });
+      this.addListener(e, l.bind(this));
+    }, this);
     // add IRC listeners
     foreach(this.irc_listeners, function(l, e) {
-      self.client.addListener(e, l.bind(self));
-    });
+      this.client.addListener(e, l.bind(this));
+    }, this);
     // load main default plugin
     this.load_plugin('main');
-    // initialize database
   },
 
   load_plugin: function(name, options) {
@@ -69,13 +71,12 @@ extend(Bot.prototype, {
       }
       var plugin_instance = new Plugin(this, plugin_module, options);
       plugin_instance.bind_channels(options.channels || this.main_channel);
-      console.log("Loaded plugin " + plugin_file);
+      this.log.debug('Loaded plugin', plugin_file);
       this.plugins[plugin_file] = plugin_instance;
       return true;
     } catch (e) {
-      console.log(e);
       // can't find plugin file
-      console.warn("Warning: Can't find plugin " + plugin_file);
+      this.log.error(e, "Warning: Can't find plugin", plugin_file);
       return false;
     }
   },
@@ -83,7 +84,6 @@ extend(Bot.prototype, {
   // Emit an event to all plugins
   // Returns a race promise with a timeout
   dispatch: function() {
-    if (this.debug) console.log('dispatch', arguments[0]);
     var args = arguments;
     var promise_queue = [];
     this.each_plugin(function() {
@@ -120,7 +120,7 @@ extend(Bot.prototype, {
 
   say_phrase: function(target, string_key) {
     if (typeof string_key !== 'string' || !this.sayings[string_key]) {
-      console.log("GRR INVALID STRING KEY! " + string_key.toString());
+      this.log.error("Can't find string key:", string_key);
       return;
     }
     arguments[1] = this.sayings[string_key];
@@ -175,7 +175,7 @@ extend(Bot.prototype, {
       }
     },
     'error': function() {
-      console.log('irc error', arguments);
+      this.log.error(arguments, 'IRC error');
     },
     'join': function(channel, nick, message) {
       if (nick !== this.nick) return;

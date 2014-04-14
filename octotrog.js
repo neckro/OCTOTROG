@@ -4,13 +4,16 @@ var extend = require('extend');
 var ircbot = require('./src/ircbot');
 
 var bot_options = {
+  logs: {
+    error: '~/logs/errors.%D.log',
+    debug: '~/logs/debug.%D.log'
+  },
   server: "irc.lunarnet.org",
   nick: "OCTOTROG",
   main_channel: '#octolog',
   irc: {
     userName: "octotrog",
     realName: "OCTOTROG",
-    debug: true,
     showErrors: true,
     stripColors: false,
     floodProtection: true
@@ -39,7 +42,6 @@ var crawl_options = {
   irc: {
     userName: "octotrog",
     realName: "OCTOTROG",
-    debug: true,
     showErrors: true,
     stripColors: false,
     floodProtection: true

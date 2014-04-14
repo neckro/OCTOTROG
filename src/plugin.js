@@ -7,31 +7,28 @@ var foreach = require('foreach');
 var Promise = require('bluebird');
 
 var Plugin = module.exports = function(bot, plugin_obj, options) {
-  extend(this, {
+  extend(this, plugin_obj, options, {
     command_map: {},
     channels: {},
-    bot: bot
-  }, plugin_obj, options || {});
+    bot: bot,
+    debug: bot.debug
+  });
 
+  this.log = bot.log.attach(this, '[' + (this.name || '???') + ']');
   events.EventEmitter.call(this);
   this.create_command_map();
   this.init();
   var self = this;
-  foreach(Listeners, function(l, n) {
+  foreach(extend({}, Listeners, this.listeners), function(l, n) {
     self.addListener(n, l);
   });
-  if (typeof this.listeners === 'object') {
-    foreach(this.listeners, function(l, n) {
-      self.addListener(n, l);
-    });
-  }
 };
 
 util.inherits(Plugin, events.EventEmitter);
 
 // To be extended by plugin module
 extend(Plugin.prototype, {
-  name: 'Plugin',
+  name: 'plugin-base',
   prefix: '',
   init: function() {},
   listeners: {},
@@ -117,7 +114,6 @@ extend(Plugin.prototype, {
 
   // Wrappers for bot functions... surely there's a better way to do this
   // The idea is that plugins should never have to access the bot object
-
   say: function() {
     var args = Array.prototype.slice.call(arguments);
     args.unshift('');
@@ -136,7 +132,8 @@ extend(Plugin.prototype, {
     }, this);
   },
 
-  dispatch: function() {
+  dispatch: function(event) {
+    this.log.debug('Event dispatched:', event);
     return this.bot.dispatch.apply(this.bot, arguments).bind(this);
   }
 
@@ -171,6 +168,6 @@ var Listeners = {
     }
   },
   'error': function(e) {
-    console.warn('plugin listener error', e);
+    this.log.error('Plugin listener error', e);
   }
 };

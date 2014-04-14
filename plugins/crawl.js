@@ -45,7 +45,7 @@ module.exports = {
   info_retry_delay: 10 * 1000,
   // Max number of times to retry game info request
   info_retry_limit: 6,
-  cron_interval: 60 * 1000,
+  cron_interval: 300 * 1000,
 
   parsers: [
     {
@@ -202,12 +202,18 @@ module.exports = {
     this.relay_nick = this.relay_nick || this.bot.nick;
     this.relay_server = this.relay_server || this.bot.server;
     this.relay_client = new irc.Client(this.relay_server, this.relay_nick, options);
+    this.log.bind_listeners(this.relay_client, 'irc');
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (!this.relay_bots[nick]) return;
+      this.log.debug(
+        'IRC',
+        '<' + nick + '>',
+        text
+      );
       this.emitP('crawl_event', text, nick, (to === this.relay_nick));
     }.bind(this));
-    this.relay_client.addListener('error', function() {
-      console.warn('Relay client error:', arguments);
+    this.relay_client.addListener('error', function(e) {
+      this.log.error(e, 'Relay client error');
     });
 
     this.cronTimer = setInterval(function() {
@@ -263,7 +269,7 @@ module.exports = {
           from: from,
           privmsg: privmsg
         });
-        console.log('Detected Crawl event: ', parsed.event);
+        this.log.debug('Detected Crawl event:', parsed.event);
         deferred.resolve(this.emitP(parsed.event, parsed.info));
       } else {
         // No event to dispatch!
@@ -360,7 +366,7 @@ module.exports = {
       deferred.resolve(
         this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
         .catch(function(e) {
-          console.log('log_death: database error', e);
+          this.log.error(e, 'log_death: database error');
           this.say_phrase('database_error', e);
         })
       );

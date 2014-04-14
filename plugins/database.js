@@ -12,7 +12,7 @@ module.exports = {
   init: function() {
     this.db = new (sqlite3.verbose().Database)(db_path);
     this.db.addListener('error', function(e) {
-      console.warn('db error', e);
+      this.log_error(e, 'Database error');
     });
   },
 

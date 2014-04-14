@@ -17,7 +17,7 @@ module.exports = {
   listeners: {
     'tweet': function(deferred, msg) {
       if (!msg) return;
-      console.log("Tweeting: " + msg);
+      this.log.debug('Tweeting:', msg);
       this.twitter.updateStatus(msg, function(response) {
         deferred.resolve(response);
       });

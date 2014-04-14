@@ -60,7 +60,6 @@ mixin footer
         e.on('click', function(event) {
           event.preventDefault();
           var challenge_id = e.attr('challenge_id');
-          console.log(challenge_id);
           if (!challenge_id) return;
           e.fadeOut(200);
           $.ajax({
