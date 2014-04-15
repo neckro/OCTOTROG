@@ -66,50 +66,52 @@ extend(Plugin.prototype, {
     return deferred.promise.bind(this);
   },
 
-  // Add a promise resolver to the event queue, or create a new one
-  // This resolver and its data gets checked/resolved by queueResolve
-  queueExpect: function(event, data, deferred) {
+  // Return a promise that resolves when a data object passes the validator
+  queueExpect: function(name, validator) {
     this.expect_queue = this.expect_queue || {};
-    if (typeof deferred === 'undefined') deferred = Promise.defer();
-    if (!Array.isArray(this.expect_queue[event])) {
-      this.expect_queue[event] = [];
+    var deferred = Promise.defer();
+    if (!Array.isArray(this.expect_queue[name])) {
+      this.expect_queue[name] = [];
     }
-    this.expect_queue[event].push({
+    this.expect_queue[name].push({
       deferred: deferred,
-      data: data
+      validator: validator
     });
+    this.log.debug('Expecting:', name);
     return deferred.promise.bind(this);
   },
 
-  // Use a filter function to see if a deferred in the queue can be resolved
-  queueResolve: function(event, data, compare) {
-    if (typeof this.expect_queue !== 'object') this.expect_queue = {};
-    var out_queue = [], r = false;
-    if (Array.isArray(this.expect_queue[event])) {
-      this.expect_queue[event].forEach(function(e) {
-        if (e && e.deferred && e.deferred.resolve && e.deferred.promise.isPending()) {
-          if (compare(e.data, data)) {
-            // Resolve it
-            e.deferred.resolve(data);
-            r = true;
-          } else {
-            // Not yet resolved, keep in queue
-            out_queue.push(e);
-          }
-        }
-      });
-    }
-    this.expect_queue[event] = out_queue;
-    return r;
-  },
-
-  // Utility method to do a queueResolve based on an array of object properties
-  queueCompare: function(event, data, props) {
-    return this.queueResolve(event, data, function(a, b) {
-      return props.every(function(e) {
-        return a.e === b.e;
+  queueExpectKeys: function(name, data, keys) {
+    return this.queueExpect(name, function(test) {
+      return keys.every(function(k) {
+        return (data[k] === test[k]);
       });
     });
+  },
+
+  // See if the supplied data matches an item in the queue
+  queueResolve: function(name, data) {
+    if (!this.expect_queue || !this.expect_queue[name]) return;
+    var out_queue = [];
+    var resolved = 0, pending = 0, pruned = 0;
+    this.expect_queue[name].forEach(function(e) {
+      if (e && e.deferred && e.deferred.resolve && e.deferred.promise.isPending()) {
+        if (e.validator(data)) {
+          // Resolve it
+          e.deferred.resolve(data);
+          resolved++;
+        } else {
+          // Not yet resolved, keep in queue
+          out_queue.push(e);
+          pending++;
+        }
+      } else {
+        pruned++;
+      }
+    });
+    this.expect_queue[name] = out_queue;
+    if (resolved) this.log.debug('Queue', name, 'Resolved:', resolved, 'Pending:', pending, 'Pruned:', pruned);
+    return resolved;
   },
 
   // Wrappers for bot functions... surely there's a better way to do this

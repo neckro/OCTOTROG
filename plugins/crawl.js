@@ -293,7 +293,9 @@ module.exports = {
           query
         ]
       });
-      var promise = (this.queueExpect(info_type, info)
+      var promise = (this.queueExpectKeys(info_type, info,
+        ['player', 'race', 'class', 'xl', 'turns']
+      )
       .timeout(this.info_timeout)
       .catch(Promise.TimeoutError, function() {
         if (retries < this.info_retry_limit) {
@@ -343,16 +345,16 @@ module.exports = {
     },
 
     'get_webtiles': function(deferred, info) {
-      var cmd = info.from && this.relay_bots[info.from] && this.relay_bots[info.from].watch;
-      if (!cmd) return deferred.resolve(info);
+      var watchcmd = info.from && this.relay_bots[info.from] && this.relay_bots[info.from].watch;
+      if (!watchcmd) return deferred.resolve(info);
       this.relay(info.from, {
-        command: cmd,
+        command: watchcmd,
         params: [
           info.player
         ]
       });
       deferred.resolve(
-        this.queueExpect('webtiles', info)
+        this.queueExpectKeys('webtiles', info, ['player'])
         .timeout(this.info_timeout)
         .catch(Promise.TimeoutError, deferred.resolve)
         .then(function(w) {
@@ -373,10 +375,7 @@ module.exports = {
     },
 
     'player_death': function(deferred, info) {
-      // Check resolution queue
-      if (this.queueCompare('player_death', info,
-        ['player', 'race', 'class', 'xl', 'turns', 'score']
-      )) return;
+      if (this.queueResolve('player_death', info)) return;
 
       // Check watchlist
       deferred.resolve(
@@ -417,16 +416,12 @@ module.exports = {
     },
 
     'player_morgue': function(deferred, info) {
-      if (this.queueCompare('player_morgue', info,
-        ['player', 'race', 'class', 'xl', 'turns', 'score']
-      )) return;
+      if (this.queueResolve('player_morgue', info)) return;
       if (info.privmsg) this.say(false, info.text);
     },
 
     'player_webtiles': function(deferred, info) {
-      if (this.queueCompare('webtiles', info,
-        ['player']
-      )) return;
+      if (this.queueResolve('webtiles', info)) return;
       if (info.privmsg) this.say(false, info.text);
     },
 
