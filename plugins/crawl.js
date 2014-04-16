@@ -554,6 +554,13 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "?/": {
+      no_space: true,
+      description: "Search for an entry in LearnDB.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
     "!abyss": {
       description: "Use with caution.",
       response: function(opt) {
@@ -743,18 +750,18 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "!time": {
+      description: "Shows the time until the tournament starts or ends",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
 
     // Henzell
     "!dump": {
       description: "Gives an URL to the specified user's last character dump. (crawl.akrasiac.org)",
       response: function(opt) {
         if (opt.params.length === 0) opt.params.push(opt.from);
-        this.relay('Henzell', opt);
-      }
-    },
-    "!time": {
-      description: "Shows the UTC time on crawl.akrasiac.org.",
-      response: function(opt) {
         this.relay('Henzell', opt);
       }
     },
