@@ -533,6 +533,16 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "&&": {
+      no_space: true,
+      description: "Pass an arbitrary command to Sequell: &&rc . ",
+      response: function(opt) {
+        var i = opt.params.indexOf('.');
+        if (i > -1) opt.params[i] = opt.from;
+        opt.command = '&' + (opt.params.shift() || '');
+        this.relay('Sequell', opt);
+      }
+    },
     "??": {
       no_space: true,
       description: "Look up an entry in LearnDB.",
