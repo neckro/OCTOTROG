@@ -45,7 +45,10 @@ module.exports = {
   info_retry_delay: 10 * 1000,
   // Max number of times to retry game info request
   info_retry_limit: 6,
+  // Interval between cron runs
   cron_interval: 300 * 1000,
+  // Delay before requesting kill ratio
+  killratio_delay: 5 * 1000,
 
   parsers: [
     {
@@ -192,17 +195,6 @@ module.exports = {
       tests: [
         "Watch necKro23 at: http://crawl.berotato.org:8080/#watch-necKro23"
       ]
-    }, {
-      event: 'player_killratio',
-      regex: '^([_\\w]+?) wins ([\\d\\.]+)% of battles against ([\\w]+?)\\.$',
-      mapping: {
-        unique: 1,
-        kill_percent: 2,
-        player: 3
-      },
-      tests: [
-        "prince_ribbit wins 6.25% of battles against johnstein."
-      ]
     }
   ],
 
@@ -225,7 +217,7 @@ module.exports = {
     }.bind(this));
     this.relay_client.addListener('error', function(e) {
       this.log.error(e, 'Relay client error');
-    });
+    }.bind(this));
 
     this.cronTimer = setInterval(function() {
       this.emitP('cron_event');
@@ -375,22 +367,6 @@ module.exports = {
       );
     },
 
-    'get_killratio': function(deferred, info) {
-      this.relay('Sequell', {
-        command: '!killratio',
-        params: [
-          info.unique_kill.replace(' ', '_'),
-          info.player
-        ]
-      });
-      deferred.resolve(
-        this.queueExpectKeys('killratio', info, ['player'])
-        .timeout(this.info_timeout)
-        .catch(Promise.TimeoutError, deferred.resolve)
-        .get('text')
-      );
-    },
-
     'log_death': function(deferred, info) {
       deferred.resolve(
         this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
@@ -452,16 +428,11 @@ module.exports = {
       if (info.privmsg) this.say(false, info.text);
     },
 
-    'player_killratio': function(deferred, info) {
-      if (this.queueResolve('killratio', info)) return;
-      if (info.privmsg) this.say(false, info.text);
-    },
-
     'player_milestone': function(deferred, info) {
       if (typeof info.milestone !== 'string') return;
       var match;
       // check for ghost kill
-      match = info.milestone.match(/(killed the ghost of (\w+))?(killed ([\w ]+))?/);
+      match = info.milestone.match(/(killed the ghost of (\w+))?(killed (.+))?/);
       if (match) {
         info.ghost_kill = match[2];
         info.unique_kill = match[4];
@@ -480,26 +451,28 @@ module.exports = {
         .bind(this)
         .spread(function(watched, ghost) {
           if (info.privmsg || watched || ghost) {
-            if (!info.unique_kill) {
-              this.relay_response(info.text, info.from);
-            } else {
-              return (this.emitP('get_killratio', info)
-              .then(function(ratio_text) {
-                info.text += ' ' + ratio_text;
-                this.relay_response(info.text, info);
-                return info;
-              }));
-            }
+            this.relay_response(info.text, info.from);
+          }
+          if (watched && info.unique_kill) {
+            // If a watched player killed a unique, request killratio
+            setTimeout(function() {
+              this.relay('Sequell', {
+                command: '!killratio',
+                params: [
+                  info.unique_kill.replace(' ', '_'),
+                  info.player
+                ]
+              });
+            }.bind(this), this.killratio_delay);
           }
           if (!info.privmsg && watched) {
             if (info.rune) {
-              return (this.emitP('get_webtiles', info)
+              this.emitP('get_webtiles', info)
               .then(function(info) {
                 this.dispatch('milestone_tweet', info);
-              }));
+              });
             }
           }
-          return info;
         })
       );
     },
