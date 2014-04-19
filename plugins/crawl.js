@@ -545,7 +545,7 @@ module.exports = {
     },
     "??": {
       no_space: true,
-      description: "Look up an entry in LearnDB.",
+      description: "Look up or search for an entry in LearnDB",
       response: function(opt) {
         this.relay('Sequell', opt);
       }
@@ -553,13 +553,6 @@ module.exports = {
     "r??": {
       no_space: true,
       description: "Return random entry in LearnDB.",
-      response: function(opt) {
-        this.relay('Sequell', opt);
-      }
-    },
-    "s??": {
-      no_space: true,
-      description: "Search for an entry in LearnDB.",
       response: function(opt) {
         this.relay('Sequell', opt);
       }
