@@ -50,6 +50,11 @@ module.exports = {
   // Delay before requesting kill ratio
   killratio_delay: 5 * 1000,
 
+  // Colors
+  milestone_color: 'light_gray',
+  win_color: 'white',
+  death_color: 'light_red',
+
   parsers: [
     {
       event: 'player_death',
@@ -391,7 +396,14 @@ module.exports = {
           info.watched = watched;
           // Relay death event to channel if appropriate
           if (info.privmsg || watched || ghost) {
-            this.relay_response(info.text, info.from);
+            var color = this.death_color;
+            if (info.fate && info.fate.match(/^escaped/)) {
+              color = this.win_color;
+            }
+            this.relay_response(
+              irc.colors.wrap(color, info.text),
+              info.from
+            );
           }
           if (info.privmsg || watched) {
             var p = this.emitP('get_extra_info', info);
@@ -451,7 +463,10 @@ module.exports = {
         .bind(this)
         .spread(function(watched, ghost) {
           if (info.privmsg || watched || ghost) {
-            this.relay_response(info.text, info.from);
+            this.relay_response(
+              irc.colors.wrap(this.milestone_color, info.text),
+              info.from
+            );
           }
           if (watched && info.unique_kill) {
             // If a watched player killed a unique, request killratio
