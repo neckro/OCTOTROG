@@ -127,13 +127,16 @@ mixin show_games(games, title)
       h3!= title
     if block
       block
-    .table-outer
-      table
-        thead
-          +table_header(games)
-        tbody
-          each game in games
-            +table_data(game)
+    if games && games[0]
+      .table-outer
+        table
+          thead
+            +table_header(games)
+          tbody
+            each game in games
+              +table_data(game)
+    else
+      p= 'No games found!'
 
 mixin show_challenges(challenges, expandable)
   if !challenges || challenges.length == 0
