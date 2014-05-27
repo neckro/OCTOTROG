@@ -474,7 +474,7 @@ module.exports = {
               this.relay('Sequell', {
                 command: '!killratio',
                 params: [
-                  info.unique_kill.replace(' ', '_'),
+                  info.unique_kill.replace(/ /g, '_'),
                   info.player
                 ]
               });
