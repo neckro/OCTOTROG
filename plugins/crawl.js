@@ -406,23 +406,25 @@ module.exports = {
             );
           }
           if (info.privmsg || watched) {
-            var p = this.emitP('get_extra_info', info);
-            p.then(function(info) {
-              this.say(false,
-                "server: %s; id: %s; version: %s; morgue: %s",
-                info.server,
-                info.id,
-                info.version,
-                info.morgue
-              );
-            });
+            var p = this.emitP('get_extra_info', info)
+              .then(function(info) {
+                this.say(false,
+                  "server: %s; id: %s; version: %s; morgue: %s",
+                  info.server,
+                  info.id,
+                  info.version,
+                  info.morgue
+                );
+              });
             if (watched) {
-              p.then(function(v) {
+              p = p.then(function(v) {
                 return this.emitP('log_death', info);
               });
-              if (!info.privmsg) p.then(function(v) {
-                return this.dispatch('death_tweet', info);
-              });
+              if (!info.privmsg) {
+                p = p.then(function(v) {
+                  return this.dispatch('death_tweet', info);
+                });
+              }
             }
             return p;
           }
