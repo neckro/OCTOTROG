@@ -147,12 +147,12 @@ extend(Bot.prototype, {
 
   irc_listeners: {
     'message': function(nick, to, text, message) {
-      var replyto = (to === this.nick) ? nick : to;
+      var replyto = (to === this.client.nick) ? nick : to;
       var opt = {
         from: nick,
         to: to,
         text: text.trim(),
-        privmsg: (to === this.nick),
+        privmsg: (to === this.client.nick),
         bot: this,
         message: message,
         reply: function(reply) {
@@ -168,17 +168,11 @@ extend(Bot.prototype, {
       };
       this.dispatch('message', opt);
     },
-    'registered': function(message) {
-      // Detect nick change on connect
-      if (message.args && typeof message.args[0] === 'string') {
-        this.nick = message.args[0];
-      }
-    },
     'error': function() {
       this.log.error(arguments, 'IRC error');
     },
     'join': function(channel, nick, message) {
-      if (nick !== this.nick) return;
+      if (nick !== this.client.nick) return;
       if (channel !== this.main_channel) return;
       if (this.kicked_flag) {
         this.say_phrase(channel, 'kicked');
@@ -189,7 +183,7 @@ extend(Bot.prototype, {
     },
     'kick': function(channel, nick, by, reason, message) {
       // set flag so bot will complain on rejoin
-      if (nick === this.nick) this.kicked_flag = true;
+      if (nick === this.client.nick) this.kicked_flag = true;
     }
   }
 

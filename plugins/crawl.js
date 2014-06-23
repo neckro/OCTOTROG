@@ -209,7 +209,11 @@ module.exports = {
     });
     this.relay_nick = this.relay_nick || this.bot.nick;
     this.relay_server = this.relay_server || this.bot.server;
-    this.relay_client = new irc.Client(this.relay_server, this.relay_nick, options);
+    this.relay_client = new irc.Client(
+      this.relay_server,
+      this.relay_nick || this.bot.nick,
+      options
+    );
     this.log.bind_listeners(this.relay_client, 'irc');
     this.relay_client.addListener('message', function(nick, to, text, message) {
       if (!this.relay_bots[nick]) return;
@@ -218,7 +222,7 @@ module.exports = {
         '<' + nick + '>',
         text
       );
-      this.emitP('crawl_event', text, nick, (to === this.relay_nick));
+      this.emitP('crawl_event', text, nick, (to === this.relay_client.nick));
     }.bind(this));
     this.relay_client.addListener('error', function(e) {
       this.log.error(e, 'Relay client error');
