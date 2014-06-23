@@ -17,10 +17,15 @@ module.exports = {
   listeners: {
     'tweet': function(resolver, msg) {
       if (!msg) return;
-      this.log.debug('Tweeting:', msg);
-      this.twitter.updateStatus(msg, function(response) {
-        resolver(response);
-      });
+      if (this.test_mode) {
+        this.log.debug("Pretend I'm Tweeting:", msg);
+        resolver(true);
+      } else {
+        this.log.debug("Actually Tweeting:", msg);
+        this.twitter.updateStatus(msg, function(response) {
+          resolver(response);
+        });
+      }
     },
     'death_tweet': function(resolver, info) {
       resolver(this.emitP('tweet', this.death_tweet_text(info)));

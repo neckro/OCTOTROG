@@ -48,16 +48,20 @@ var crawl_options = {
   },
 };
 
-if (process.argv[2] === 'test') {
+var TESTMODE = (process.argv[2] === 'test');
+
+if (TESTMODE) {
   extend(bot_options, {
     main_channel: '#octotest',
     nick: 'TESTTROG'
   });
+/*
   extend(crawl_options, {
     relay_nick: 'TESTTROG',
     relay_server: 'irc.freenode.net',
     relay_channels: ['#octotest']
   });
+*/
 }
 
 var bot = new ircbot(bot_options);
@@ -68,7 +72,9 @@ bot.load_plugin('crawl', crawl_options);
 bot.load_plugin('crawl.www');
 try {
   var secrets = require('./secrets.js');
-  bot.load_plugin('crawl.twitter', { auth_tokens: secrets.twitter });
+  bot.load_plugin('crawl.twitter', {
+    auth_tokens: secrets.twitter,
+    test_mode: TESTMODE
+  });
 } catch (e) {}
-
 module.exports = bot;
