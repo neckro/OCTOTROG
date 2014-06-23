@@ -56,29 +56,33 @@ extend(Plugin.prototype, {
   },
 
   // Emit an event to self, returning a promise
-  // Emitted events receive a PromiseResolver as first argument
+  // Emitted events receive a Promise as first argument
   // This is also used by bot's .dispatch()
   emitP: function(event) {
-    var deferred = Promise.defer();
     var args = Array.prototype.slice.call(arguments, 1);
-    args.unshift(event, deferred);
-    this.emit.apply(this, args);
-    return deferred.promise.bind(this);
+    var self = this;
+    var p = new Promise(function(resolve, reject) {
+      args.unshift(event, resolve);
+      self.emit.apply(self, args);
+    });
+    return p.bind(this);
   },
 
   // Return a promise that resolves when a data object passes the validator
   queueExpect: function(name, validator) {
     this.expect_queue = this.expect_queue || {};
-    var deferred = Promise.defer();
+    var queue = this.expect_queue;
     if (!Array.isArray(this.expect_queue[name])) {
-      this.expect_queue[name] = [];
+      queue[name] = [];
     }
-    this.expect_queue[name].push({
-      deferred: deferred,
-      validator: validator
+    var p = new Promise(function(resolve, reject) {
+      queue[name].push({
+        resolver: resolve,
+        validator: validator
+      });
     });
     this.log.debug('Expecting:', name);
-    return deferred.promise.bind(this);
+    return p.bind(this);
   },
 
   queueExpectKeys: function(name, data, keys) {
@@ -95,10 +99,10 @@ extend(Plugin.prototype, {
     var out_queue = [];
     var resolved = 0, pending = 0, pruned = 0;
     this.expect_queue[name].forEach(function(e) {
-      if (e && e.deferred && e.deferred.resolve && e.deferred.promise.isPending()) {
+      if (e && typeof e.resolver === 'function') {
         if (e.validator(data)) {
           // Resolve it
-          e.deferred.resolve(data);
+          e.resolver(data);
           resolved++;
         } else {
           // Not yet resolved, keep in queue
@@ -110,7 +114,9 @@ extend(Plugin.prototype, {
       }
     });
     this.expect_queue[name] = out_queue;
-    if (resolved) this.log.debug('Queue', name, 'Resolved:', resolved, 'Pending:', pending, 'Pruned:', pruned);
+    if (resolved) {
+      this.log.debug('Queue', name, 'Resolved:', resolved, 'Pending:', pending, 'Pruned:', pruned);
+    }
     return resolved;
   },
 
@@ -142,10 +148,12 @@ extend(Plugin.prototype, {
 });
 
 var Listeners = {
-  'message': function(deferred, opt) {
+  'message': function(resolver, opt) {
     // Look for a command handler
     var input = opt.text + ' ';
-    if (!(opt.privmsg || this.channels[opt.to])) return; // Not-bound channel
+    if (!(opt.privmsg || this.channels[opt.to])) {
+      return resolver(Promise.reject('Not bound channel'));
+    }
     if (!Object.keys(this.command_map).some(function(c) {
       if (input.indexOf(c) === 0) {
         // Found a match
@@ -160,13 +168,13 @@ var Listeners = {
         });
         if (opt.handler.response) {
           // Execute handler
-          deferred.resolve(opt.handler.response.call(this, opt));
+          resolver(opt.handler.response.call(this, opt));
         }
         return true;
       }
     }, this)) {
       // Couldn't find handler
-      deferred.reject();
+      return resolver(Promise.reject("Couldn't find handler"));
     }
   },
   'error': function(e) {

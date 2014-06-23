@@ -17,11 +17,11 @@ module.exports = {
   },
 
   listeners: {
-    'db_insert': function(deferred, table, o, obj_keys) {
+    'db_insert': function(resolver, table, o, obj_keys) {
       if (
         typeof o !== 'object' ||
         typeof table !== 'string'
-      ) return deferred.reject();
+      ) return resolver(Promise.reject('Bad parameters'));
       if (!Array.isArray(obj_keys)) {
         obj_keys = Object.keys(o);
       }
@@ -39,17 +39,19 @@ module.exports = {
           keys.join(', '),
           placeholders.join(', ')
         );
-        deferred.resolve(this.emitP('db_run', query, values));
+        resolver(this.emitP('db_run', query, values));
       }
     },
-    'db_run': function(deferred) {
+    'db_run': function(resolver) {
       var args = Array.prototype.slice.call(arguments, 1);
-      deferred.resolve(Promise.promisify(this.db.run).apply(this.db, args));
+      resolver(Promise.promisify(this.db.run).apply(this.db, args));
     },
-    'db_call': function(deferred, func) {
-      if (typeof this.db[func] !== 'function') return deferred.reject();
+    'db_call': function(resolver, func) {
+      if (typeof this.db[func] !== 'function') {
+        return Promise.reject('Invalid DB call: ' + func);
+      }
       var args = Array.prototype.slice.call(arguments, 2);
-      deferred.resolve(Promise.promisify(this.db[func]).apply(this.db, args));
+      resolver(Promise.promisify(this.db[func]).apply(this.db, args));
     }
   }
 

@@ -77,11 +77,11 @@ module.exports = {
   },
 
   listeners: {
-    'check_watchlist': function(deferred, names, no_update) {
+    'check_watchlist': function(resolver, names, no_update) {
       if (typeof names === 'string') {
         names = [names];
       }
-      if (!Array.isArray(names)) return deferred.resolve(false);
+      if (!Array.isArray(names)) return resolver(false);
       var player;
       var check = names.some(function(n) {
         if (typeof n !== 'string') return;
@@ -91,17 +91,17 @@ module.exports = {
       if (check && !no_update) {
         this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', player);
       }
-      deferred.resolve(check);
+      resolver(check);
     },
-    'get_watchlist': function(deferred) {
-      deferred.resolve(Object.keys(
+    'get_watchlist': function(resolver) {
+      resolver(Object.keys(
         (typeof this.watchlist === 'object') ? this.watchlist : {}
       ));
     },
-    'modify_watchlist': function(deferred, nick, add) {
+    'modify_watchlist': function(resolver, nick, add) {
       var self = this;
       if (!add && this.watchlist[nick]) {
-        deferred.resolve(
+        resolver(
           this.dispatch('db_run', 'DELETE FROM watchlist WHERE player = ?', nick)
           .then(function() {
             delete(self.watchlist[nick]);
@@ -109,7 +109,7 @@ module.exports = {
           })
         );
       } else if (add) {
-        deferred.resolve(
+        resolver(
           this.dispatch('db_run', 'INSERT INTO watchlist (player) VALUES (?)', nick)
           .then(function() {
             self.watchlist[nick] = true;
@@ -117,7 +117,7 @@ module.exports = {
           })
         );
       } else {
-        deferred.resolve(false);
+        resolver(false);
       }
     }
   }

@@ -15,18 +15,18 @@ module.exports = {
   },
 
   listeners: {
-    'tweet': function(deferred, msg) {
+    'tweet': function(resolver, msg) {
       if (!msg) return;
       this.log.debug('Tweeting:', msg);
       this.twitter.updateStatus(msg, function(response) {
-        deferred.resolve(response);
+        resolver(response);
       });
     },
-    'death_tweet': function(deferred, info) {
-      deferred.resolve(this.emitP('tweet', this.death_tweet_text(info)));
+    'death_tweet': function(resolver, info) {
+      resolver(this.emitP('tweet', this.death_tweet_text(info)));
     },
-    'milestone_tweet': function(deferred, info) {
-      deferred.resolve(this.emitP('tweet', this.milestone_tweet_text(info)));
+    'milestone_tweet': function(resolver, info) {
+      resolver(this.emitP('tweet', this.milestone_tweet_text(info)));
     }
   },
 

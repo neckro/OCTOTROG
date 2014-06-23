@@ -53,27 +53,27 @@ module.exports = {
   },
 
   listeners: {
-    'recent_games': function(deferred, num_games) {
+    'recent_games': function(resolver, num_games) {
       num_games = num_games || 5;
-      deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM `deaths` ORDER BY `date` DESC LIMIT ?', num_games));
+      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM `deaths` ORDER BY `date` DESC LIMIT ?', num_games));
     },
-    'challenges_current': function(deferred) {
-      deferred.resolve(
+    'challenges_current': function(resolver) {
+      resolver(
         this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE CURRENT_TIMESTAMP BETWEEN start AND end')
         .then(function(v) {
           return this.emitP('challenge_data', v, -1);
         })
       );
     },
-    'challenges_history': function(deferred) {
-      deferred.resolve(
+    'challenges_history': function(resolver) {
+      resolver(
         this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE end < CURRENT_TIMESTAMP ORDER BY end_date DESC')
         .then(function(v) {
           return this.emitP('challenge_data', v, 1);
         })
       );
     },
-    'challenge_data': function(deferred, challenges, limit) {
+    'challenge_data': function(resolver, challenges, limit) {
       limit = limit || -1;
       var promise_list = [];
       foreach(challenges, function(c) {
@@ -85,10 +85,10 @@ module.exports = {
           })
         );
       }, this);
-      return deferred.resolve(Promise.all(promise_list));
+      return resolver(Promise.all(promise_list));
     },
-    'challenges_ajax': function(deferred, challenge_id) {
-      deferred.resolve(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC', challenge_id));
+    'challenges_ajax': function(resolver, challenge_id) {
+      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC', challenge_id));
     }
   }
 

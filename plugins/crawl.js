@@ -267,7 +267,7 @@ module.exports = {
   },
 
   listeners: {
-    'crawl_event': function(deferred, text, from, privmsg) {
+    'crawl_event': function(resolver, text, from, privmsg) {
       // Recieved a message from a bot!  Do something about it.
       var parsed = this.parse_message(this.parsers, text);
 
@@ -278,16 +278,15 @@ module.exports = {
           privmsg: privmsg
         });
         this.log.debug('Detected Crawl event:', parsed.event);
-        deferred.resolve(this.emitP(parsed.event, parsed.info));
-      } else {
-        // No event to dispatch!
-        // Relay the text anyways if appropriate
-        if (privmsg) this.relay_response(text);
-        deferred.reject();
+        return resolver(this.emitP(parsed.event, parsed.info));
       }
+      // No event to dispatch!
+      // Relay the text anyways if appropriate
+      if (privmsg) this.relay_response(text);
+      return resolver(Promise.reject('No event to dispatch!'));
     },
 
-    'get_gameinfo': function(deferred, info, query, info_type, retries) {
+    'get_gameinfo': function(resolver, info, query, info_type, retries) {
       retries = retries || 0;
       // Request the game info
       this.relay('Sequell', {
@@ -319,11 +318,11 @@ module.exports = {
           this.say('Cannot retrieve additional info for player: %s', info.player);
         }
       }));
-      deferred.resolve(promise);
+      resolver(promise);
     },
 
-    'get_extra_info': function(deferred, info) {
-      deferred.resolve(
+    'get_extra_info': function(resolver, info) {
+      resolver(
         Promise.all([
           this.emitP('get_gameinfo', info, '-log', 'player_morgue')
           .get('morgue'),
@@ -352,19 +351,19 @@ module.exports = {
       );
     },
 
-    'get_webtiles': function(deferred, info) {
+    'get_webtiles': function(resolver, info) {
       var watchcmd = info.from && this.relay_bots[info.from] && this.relay_bots[info.from].watch;
-      if (!watchcmd) return deferred.resolve(info);
+      if (!watchcmd) return resolver(info);
       this.relay(info.from, {
         command: watchcmd,
         params: [
           info.player
         ]
       });
-      deferred.resolve(
+      resolver(
         this.queueExpectKeys('webtiles', info, ['player'])
         .timeout(this.info_timeout)
-        .catch(Promise.TimeoutError, deferred.resolve)
+        .catch(Promise.TimeoutError, resolver)
         .then(function(w) {
           info.webtiles = w.webtiles;
           return info;
@@ -372,8 +371,8 @@ module.exports = {
       );
     },
 
-    'log_death': function(deferred, info) {
-      deferred.resolve(
+    'log_death': function(resolver, info) {
+      resolver(
         this.dispatch('db_insert', 'deaths', info, ['id', 'server', 'version', 'score', 'player', 'race', 'class', 'title', 'god', 'place', 'fate', 'xl', 'turns', 'date', 'duration', 'morgue'])
         .catch(function(e) {
           this.log.error(e, 'log_death: database error');
@@ -382,11 +381,11 @@ module.exports = {
       );
     },
 
-    'player_death': function(deferred, info) {
+    'player_death': function(resolver, info) {
       if (this.queueResolve('player_death', info)) return;
 
       // Check watchlist
-      deferred.resolve(
+      resolver(
         Promise.all([
           this.dispatch('check_watchlist', info.player),
           this.dispatch('check_watchlist', info.ghost_killer)
@@ -432,17 +431,17 @@ module.exports = {
       );
     },
 
-    'player_morgue': function(deferred, info) {
+    'player_morgue': function(resolver, info) {
       if (this.queueResolve('player_morgue', info)) return;
       if (info.privmsg) this.say(false, info.text);
     },
 
-    'player_webtiles': function(deferred, info) {
+    'player_webtiles': function(resolver, info) {
       if (this.queueResolve('webtiles', info)) return;
       if (info.privmsg) this.say(false, info.text);
     },
 
-    'player_milestone': function(deferred, info) {
+    'player_milestone': function(resolver, info) {
       if (typeof info.milestone !== 'string') return;
       var match;
       // check for ghost kill
@@ -457,7 +456,7 @@ module.exports = {
         info.rune = match[2] || 'orb';
       }
 
-      deferred.resolve(
+      resolver(
         Promise.all([
           this.dispatch('check_watchlist', info.player),
           this.dispatch('check_watchlist', info.ghost_kill)
@@ -494,8 +493,8 @@ module.exports = {
       );
     },
 
-    'cron_event': function(deferred) {
-      deferred.resolve(
+    'cron_event': function(resolver) {
+      resolver(
         this.dispatch('db_call', 'all', 'SELECT * FROM deaths WHERE id IS NULL ORDER BY score DESC LIMIT 1')
         .then(function(res) {
           if (res && res[0]) {

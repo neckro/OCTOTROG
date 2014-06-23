@@ -89,7 +89,7 @@ extend(Bot.prototype, {
     this.each_plugin(function() {
       promise_queue.push(this.emitP.apply(this, args));
     });
-    return Promise.race(promise_queue);
+    return Promise.any(promise_queue);
   },
 
   // Iterate all plugins with a callback
