@@ -1,5 +1,5 @@
 OCTOTROG.JS
------------
+===========
 
 Based off the original OCTOTROG written in Perl by shmup:
 https://github.com/shmup/octotrog
@@ -16,3 +16,11 @@ Instructions:
  * Run `sqlite3 db/save.db < db/schema.sql` to initialize the database
  * `npm install`
  * `npm start`
+
+API
+===
+I've tried to give the bot a reasonably simple and extensible architecture.  Might as well write this stuff down.
+
+Plugins
+-------
+Plugin files are bound to the bot upon loading.  Each plugin is a singleton instance for now.

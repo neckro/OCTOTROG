@@ -127,6 +127,13 @@ extend(Bot.prototype, {
     return this.say.apply(this, arguments);
   },
 
+  color_wrap: function(text, color) {
+    if (typeof color === 'string') {
+      return ('\u0003' + color + text + '\u0003');
+    }
+    return text;
+  },
+
   split_line: function(text, length) {
     var out = '', pos;
     if (!length || typeof text !== 'string') return;

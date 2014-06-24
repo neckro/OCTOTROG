@@ -55,13 +55,11 @@ if (TESTMODE) {
     main_channel: '#octotest',
     nick: 'TESTTROG'
   });
-/*
   extend(crawl_options, {
     relay_nick: 'TESTTROG',
-    relay_server: 'irc.freenode.net',
-    relay_channels: ['#octotest']
+    relay_server: 'irc.freenode.net'
   });
-*/
+//  crawl_options.relay_channels = ['#octotest'];
 }
 
 var bot = new ircbot(bot_options);

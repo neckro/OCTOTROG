@@ -51,9 +51,9 @@ module.exports = {
   killratio_delay: 5 * 1000,
 
   // Colors
-  milestone_color: 'light_gray',
-  win_color: 'white',
-  death_color: 'light_red',
+  milestone_color: '15,01',
+  win_color: '08,01',
+  death_color: '04,01',
 
   parsers: [
     {
@@ -403,8 +403,10 @@ module.exports = {
             if (info.fate && info.fate.match(/^escaped/)) {
               color = this.win_color;
             }
+            // Don't color text if it didn't just happen
+            if (info.result_num) color = null;
             this.relay_response(
-              irc.colors.wrap(color, info.text),
+              this.color_wrap(info.text, color),
               info.from
             );
           }
@@ -468,8 +470,10 @@ module.exports = {
         .bind(this)
         .spread(function(watched, ghost) {
           if (info.privmsg || watched || ghost) {
+            // Only color new milestones
+            var color = info.result_num ? null : this.milestone_color;
             this.relay_response(
-              irc.colors.wrap(this.milestone_color, info.text),
+              this.color_wrap(info.text, color),
               info.from
             );
           }

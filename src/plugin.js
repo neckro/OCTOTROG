@@ -120,24 +120,27 @@ extend(Plugin.prototype, {
     return resolved;
   },
 
+  say_wrapper: function(method, args) {
+    Array.prototype.unshift.call(args, '');
+    var bot = this.bot;
+    foreach(this.channels, function(e, i) {
+      args[0] = i;
+      bot[method].apply(bot, args);
+    });
+  },
+
   // Wrappers for bot functions... surely there's a better way to do this
   // The idea is that plugins should never have to access the bot object
   say: function() {
-    var args = Array.prototype.slice.call(arguments);
-    args.unshift('');
-    foreach(this.channels, function(v, c) {
-      args[0] = c;
-      this.bot.say.apply(this.bot, args);
-    }, this);
+    return this.say_wrapper('say', arguments);
   },
 
   say_phrase: function() {
-    var args = Array.prototype.slice.call(arguments);
-    args.unshift('');
-    foreach(this.channels, function(v, c) {
-      args[0] = c;
-      this.bot.say_phrase.apply(this.bot, args);
-    }, this);
+    return this.say_wrapper('say_phrase', arguments);
+  },
+
+  color_wrap: function() {
+    return this.bot.color_wrap.apply(this.bot, arguments);
   },
 
   dispatch: function(event) {
