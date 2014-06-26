@@ -61,6 +61,6 @@ DROP VIEW IF EXISTS challenge_best_attempts;
 CREATE VIEW challenge_best_attempts AS
   SELECT a.*, m.attempts FROM challenge_attempts a
   JOIN (
-    SELECT challenge_id, player, MAX(score) AS score, COUNT(score) AS attempts FROM challenge_attempts GROUP BY player, challenge_id
-  ) m USING (challenge_id, player, score)
+    SELECT id, challenge_id, player, MAX(score) AS score, COUNT(score) AS attempts FROM challenge_attempts GROUP BY LOWER(player), challenge_id
+  ) m USING (id)
 ;
