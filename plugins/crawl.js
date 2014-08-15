@@ -669,7 +669,7 @@ module.exports = {
       response: function(opt) {
         var self = this;
         if (opt.params.length === 0) {
-          this.bot.dispatch('get_watchlist', function(watchlist) {
+          this.dispatch('get_watchlist', function(watchlist) {
             opt.params.push(watchlist.join('|'));
             self.relay('Sequell', opt);
           });
