@@ -49,6 +49,8 @@ module.exports = {
   cron_interval: 300 * 1000,
   // Delay before requesting kill ratio
   killratio_delay: 5 * 1000,
+  // Minimum score required to tweet deaths
+  tweet_score_min: 1000,
 
   // Colors
   milestone_color: '15,01',
@@ -399,17 +401,21 @@ module.exports = {
           info.watched = watched;
           // Relay death event to channel if appropriate
           if (info.privmsg || watched || ghost) {
-            var color = this.death_color;
+            var color;
+            // Color wins
             if (info.fate && info.fate.match(/^escaped/)) {
               color = this.win_color;
             }
-            // Don't color text if it didn't just happen
-            if (info.result_num) color = null;
+            // Color new deaths
+            if (info.result_num === undefined) {
+              color = this.death_color;
+            }
             this.relay_response(
               this.color_wrap(info.text, color),
               info.from
             );
           }
+          // Get extra info for relayed deaths
           if (info.privmsg || watched) {
             var p = this.emitP('get_extra_info', info)
               .then(function(info) {
@@ -422,10 +428,12 @@ module.exports = {
                 );
               });
             if (watched) {
+              // If player is watched, log this death to db
               p = p.then(function(v) {
                 return this.emitP('log_death', info);
               });
-              if (!info.privmsg) {
+              // If new death and score is above threshold, tweet it
+              if (info.result_num === undefined && info.score > this.tweet_score_min) {
                 p = p.then(function(v) {
                   return this.dispatch('death_tweet', info);
                 });
