@@ -98,15 +98,15 @@ extend(Plugin.prototype, {
     if (!this.expect_queue || !this.expect_queue[name]) return;
     var out_queue = [];
     var resolved = 0, pending = 0, pruned = 0;
-    this.expect_queue[name].forEach(function(e) {
-      if (e && typeof e.resolver === 'function') {
-        if (e.validator(data)) {
+    this.expect_queue[name].forEach(function(item) {
+      if (typeof item === 'object' && typeof item.resolver === 'function') {
+        if (item.validator(data)) {
           // Resolve it
-          e.resolver(data);
+          item.resolver(data);
           resolved++;
         } else {
-          // Not yet resolved, keep in queue
-          out_queue.push(e);
+          // Item not yet resolved, keep in queue
+          out_queue.push(item);
           pending++;
         }
       } else {
@@ -114,8 +114,8 @@ extend(Plugin.prototype, {
       }
     });
     this.expect_queue[name] = out_queue;
-    if (resolved) {
-      this.log.debug('Queue', name, 'Resolved:', resolved, 'Pending:', pending, 'Pruned:', pruned);
+    if (resolved > 0) {
+      this.log.debug('Queue', name, '-', 'Resolved:', resolved, 'Pending:', pending, 'Pruned:', pruned);
     }
     return resolved;
   },
