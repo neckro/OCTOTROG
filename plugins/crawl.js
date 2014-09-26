@@ -292,8 +292,8 @@ module.exports = {
       return resolver(Promise.reject('No event to dispatch!'));
     },
 
-    'get_gameinfo': function(resolver, info, query, info_type, retries) {
-      retries = retries || 0;
+    'get_gameinfo': function(resolver, info, query) {
+      if (info.retries_left === undefined) info.retries_left = this.info_retry_limit;
       // Request the game info
       this.relay('Sequell', {
         command: '!lg',
@@ -306,22 +306,26 @@ module.exports = {
           query
         ]
       });
-      var promise = (this.queueExpectKeys(info_type, info,
+      var promise = (this.queueExpectKeys(
+        'game_info',
+        info,
         ['player', 'race', 'class', 'xl', 'turns']
       )
       .timeout(this.info_timeout)
-      .catch(Promise.TimeoutError, function() {
-        if (retries < this.info_retry_limit) {
+      .catch(Promise.TimeoutError, function(e) {
+        if (info.retries_left-- > 0) {
+          // Try again
           return (
             Promise.delay(this.info_retry_delay)
             .bind(this)
             .then(function() {
-              return this.emitP('get_gameinfo', info, query, info_type, ++retries);
+              return this.emitP('get_gameinfo', info, query, info.retries_left);
             })
           );
         } else {
-          // Retry limit reached!
-          this.say('Cannot retrieve additional info for player: %s', info.player);
+          // Retry limit reached
+          this.log.error('Cannot retrieve additional info for player', info.player);
+          throw e;
         }
       }));
       resolver(promise);
