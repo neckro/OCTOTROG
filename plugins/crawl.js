@@ -418,28 +418,17 @@ module.exports = {
             );
           }
           // Get extra info for relayed deaths
-          if (info.privmsg || watched) {
-            var p = this.emitP('get_extra_info', info)
-              .then(function(info) {
-                this.say(false,
-                  "server: %s; id: %s; version: %s; morgue: %s",
-                  info.server,
-                  info.id,
-                  info.version,
-                  info.morgue
-                );
-              });
-            if (watched) {
-              // If player is watched, log this death to db
+          if (info.watched) {
+            var p = this.emitP('get_extra_info', info);
+            // If player is watched, log this death to db
+            p = p.then(function(v) {
+              return this.emitP('log_death', info);
+            });
+            // If new death and score is above threshold, tweet it
+            if (info.result_num === undefined && info.score > this.tweet_score_min) {
               p = p.then(function(v) {
-                return this.emitP('log_death', info);
+                return this.dispatch('death_tweet', info);
               });
-              // If new death and score is above threshold, tweet it
-              if (info.result_num === undefined && info.score > this.tweet_score_min) {
-                p = p.then(function(v) {
-                  return this.dispatch('death_tweet', info);
-                });
-              }
             }
             return p;
           }
