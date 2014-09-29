@@ -47,8 +47,6 @@ module.exports = {
   info_retry_limit: 6,
   // Interval between cron runs
   cron_interval: 300 * 1000,
-  // Delay before requesting kill ratio
-  killratio_delay: 5 * 1000,
   // Minimum score required to tweet deaths
   tweet_score_min: 1000,
 
@@ -488,18 +486,6 @@ module.exports = {
               this.color_wrap(info.text, color),
               info.from
             );
-          }
-          if (watched && info.unique_kill) {
-            // If a watched player killed a unique, request killratio
-            setTimeout(function() {
-              this.relay('Sequell', {
-                command: '!killratio',
-                params: [
-                  info.unique_kill.replace(/ /g, '_'),
-                  info.player
-                ]
-              });
-            }.bind(this), this.killratio_delay);
           }
           if (!info.privmsg && watched) {
             if (info.rune) {
