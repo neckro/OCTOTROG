@@ -1,8 +1,11 @@
 "use strict";
+var path = require('path');
 var irc = require('irc');
 var extend = require('extend');
+var startStopDaemon = require('start-stop-daemon');
 var ircbot = require('./src/ircbot');
 
+// Configuration
 var bot_options = {
   logs: {
     error: '~/logs/errors.%D.log',
@@ -48,7 +51,7 @@ var crawl_options = {
   },
 };
 
-var TESTMODE = (process.argv[2] === 'test');
+var TESTMODE = (process.argv[3] === 'test');
 
 if (TESTMODE) {
   extend(bot_options, {
@@ -59,20 +62,28 @@ if (TESTMODE) {
     relay_nick: 'TESTTROG',
     relay_server: 'irc.freenode.net'
   });
-//  crawl_options.relay_channels = ['#octotest'];
+  crawl_options.relay_channels = ['#octotest'];
 }
 
-var bot = new ircbot(bot_options);
-bot.load_plugin('database');
-bot.load_plugin('dictionary');
-bot.load_plugin('crawl.watchlist');
-bot.load_plugin('crawl', crawl_options);
-bot.load_plugin('crawl.www');
-try {
-  var secrets = require('./secrets.js');
-  bot.load_plugin('crawl.twitter', {
-    auth_tokens: secrets.twitter,
-    test_mode: TESTMODE
-  });
-} catch (e) {}
-module.exports = bot;
+// Start the daemon
+var daemon = startStopDaemon({
+  outFile: path.resolve(__dirname, 'logs') + '/octotrog.log',
+  max: 10
+}, function() {
+  // Start the bot
+  var bot = new ircbot(bot_options);
+  bot.load_plugin('database');
+  bot.load_plugin('dictionary');
+  bot.load_plugin('crawl.watchlist');
+  bot.load_plugin('crawl', crawl_options);
+  bot.load_plugin('crawl.www');
+  var secrets = {};
+  try {
+    secrets = require('./secrets.js');
+  } catch (e) {
+    bot.load_plugin('crawl.twitter', {
+      auth_tokens: secrets.twitter,
+      test_mode: TESTMODE
+    });
+  }
+});
