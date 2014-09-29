@@ -77,21 +77,14 @@ module.exports = {
   },
 
   listeners: {
-    'check_watchlist': function(resolver, names, no_update) {
-      if (typeof names === 'string') {
-        names = [names];
-      }
-      if (!Array.isArray(names)) return resolver(false);
-      var player;
-      var check = names.some(function(n) {
-        if (typeof n !== 'string') return;
-        player = n.toLowerCase();
-        return !!(this.watchlist[player]);
-      }, this);
-      if (check && !no_update) {
+    'check_watchlist': function(resolver, name, no_update) {
+      if (typeof name !== 'string') return resolver(false);
+      var player = name.toLowerCase();
+      var watched = !!(this.watchlist[player]);
+      if (watched && !no_update) {
         this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', player);
       }
-      resolver(check);
+      resolver(watched);
     },
     'get_watchlist': function(resolver) {
       resolver(Object.keys(
