@@ -290,8 +290,9 @@ module.exports = {
       return resolver(Promise.reject('No event to dispatch!'));
     },
 
-    'get_gameinfo': function(resolver, info, query) {
+    'get_gameinfo': function(resolver, info, query, info_type) {
       if (info.retries_left === undefined) info.retries_left = this.info_retry_limit;
+      info_type = info_type || 'game_info';
       // Request the game info
       this.relay('Sequell', {
         command: '!lg',
@@ -305,7 +306,7 @@ module.exports = {
         ]
       });
       var promise = (this.queueExpectKeys(
-        'game_info',
+        info_type,
         info,
         ['player', 'race', 'class', 'xl', 'turns']
       )
@@ -317,7 +318,7 @@ module.exports = {
             Promise.delay(this.info_retry_delay)
             .bind(this)
             .then(function() {
-              return this.emitP('get_gameinfo', info, query, info.retries_left);
+              return this.emitP('get_gameinfo', info, query, info_type);
             })
           );
         } else {
