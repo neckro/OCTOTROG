@@ -373,7 +373,7 @@ module.exports = {
         .timeout(this.info_timeout)
         .catch(Promise.TimeoutError, resolver)
         .then(function(w) {
-          info.webtiles = w.webtiles;
+          if (typeof w === 'object') info.webtiles = w.webtiles;
           return info;
         })
       );
