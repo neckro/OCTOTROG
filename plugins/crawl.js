@@ -405,13 +405,12 @@ module.exports = {
           // Relay death event to channel if appropriate
           if (info.privmsg || watched || ghost) {
             var color;
-            // Color wins
-            if (info.fate && info.fate.match(/^escaped/)) {
-              color = this.win_color;
-            }
-            // Color new deaths
             if (info.result_num === undefined) {
+              // Color new deaths/wins
               color = this.death_color;
+              if (info.fate && info.fate.match(/^escaped/)) {
+                color = this.win_color;
+              }
             }
             this.relay_response(
               this.color_wrap(info.text, color),
