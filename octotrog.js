@@ -51,7 +51,7 @@ var crawl_options = {
   },
 };
 
-var TESTMODE = (process.argv[3] === 'test');
+var TESTMODE = (process.argv[2] === 'test');
 
 if (TESTMODE) {
   extend(bot_options, {
