@@ -74,6 +74,7 @@ var daemon = startStopDaemon({
   var bot = new ircbot(bot_options);
   bot.load_plugin('database');
   bot.load_plugin('dictionary');
+  bot.load_plugin('crawl.data');
   bot.load_plugin('crawl.watchlist');
   bot.load_plugin('crawl', crawl_options);
   bot.load_plugin('crawl.www');

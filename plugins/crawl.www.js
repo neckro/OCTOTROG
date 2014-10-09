@@ -27,9 +27,9 @@ module.exports = {
     // Set routes
     app.get('/', function(req, res) {
       Promise.props({
-        'recent_games': self.emitP('recent_games'),
-        'challenges_current': self.emitP('challenges_current'),
-        'challenges_history': self.emitP('challenges_history')
+        'recent_games': self.dispatch('recent_games'),
+        'challenges_current': self.dispatch('challenges_current'),
+        'challenges_history': self.dispatch('challenges_history')
       })
       .then(function(result) {
         res.render('index.jade', result);
@@ -38,7 +38,7 @@ module.exports = {
 
     app.get('/ajax/challenge/:challenge_id', function(req, res) {
       Promise.props({
-        'games': self.emitP('challenges_ajax', req.params.challenge_id)
+        'games': self.dispatch('challenge_winners', req.params.challenge_id)
       })
       .then(function(result) {
         res.render('ajax_game_table.jade', result);
@@ -53,43 +53,6 @@ module.exports = {
   },
 
   listeners: {
-    'recent_games': function(resolver, num_games) {
-      num_games = num_games || 5;
-      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM `deaths` ORDER BY `date` DESC LIMIT ?', num_games));
-    },
-    'challenges_current': function(resolver) {
-      resolver(
-        this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE CURRENT_TIMESTAMP BETWEEN start AND end')
-        .then(function(v) {
-          return this.emitP('challenge_data', v, -1);
-        })
-      );
-    },
-    'challenges_history': function(resolver) {
-      resolver(
-        this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE end < CURRENT_TIMESTAMP ORDER BY end_date DESC')
-        .then(function(v) {
-          return this.emitP('challenge_data', v, 1);
-        })
-      );
-    },
-    'challenge_data': function(resolver, challenges, limit) {
-      limit = limit || -1;
-      var promise_list = [];
-      foreach(challenges, function(c) {
-        promise_list.push(
-          this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC LIMIT ?', c.challenge_id, limit)
-          .then(function(v) {
-            c.games = v;
-            return c;
-          })
-        );
-      }, this);
-      return resolver(Promise.all(promise_list));
-    },
-    'challenges_ajax': function(resolver, challenge_id) {
-      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC', challenge_id));
-    }
   }
 
 };
