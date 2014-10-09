@@ -45,7 +45,8 @@ CREATE VIEW challenges_view AS
     c.race, c.class,
     c.start, c.end,
     DATE(c.start) AS start_date,
-    DATE(c.end, '-10 hours') AS end_date
+    DATE(c.end, '-10 hours') AS end_date,
+    ROUND((strftime('%s', DATE(c.end, '-10 hours')) - strftime('%s', CURRENT_TIMESTAMP)) / 3600.0, 1) AS hours_left
   FROM challenges c
 ;
 

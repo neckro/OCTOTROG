@@ -75,6 +75,7 @@ var daemon = startStopDaemon({
   bot.load_plugin('database');
   bot.load_plugin('dictionary');
   bot.load_plugin('crawl.data');
+  bot.load_plugin('crawl.challenges');
   bot.load_plugin('crawl.watchlist');
   bot.load_plugin('crawl', crawl_options);
   bot.load_plugin('crawl.www');

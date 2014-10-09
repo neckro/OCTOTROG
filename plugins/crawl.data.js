@@ -1,8 +1,5 @@
 "use strict";
 var foreach = require('foreach');
-var express = require('express');
-var engines = require('consolidate');
-var http = require('http');
 var Promise = require('bluebird');
 
 module.exports = {
@@ -24,6 +21,11 @@ module.exports = {
         })
       );
     },
+    'challenges_current_summary': function(resolver) {
+      resolver(
+        this.dispatch('db_call', 'all', 'SELECT *, MAX(score) FROM challenge_best_attempts WHERE hours_left > 0 GROUP BY challenge_id ORDER BY start_date, score')
+      );
+    },
     'challenges_history': function(resolver) {
       resolver(
         this.dispatch('db_call', 'all', 'SELECT * FROM challenges_view WHERE end < CURRENT_TIMESTAMP ORDER BY end_date DESC')
@@ -37,7 +39,7 @@ module.exports = {
       var promise_list = [];
       foreach(challenges, function(c) {
         promise_list.push(
-          this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC LIMIT ?', c.challenge_id, limit)
+          this.emitP('challenge_winners', c.challenge_id, limit)
           .then(function(v) {
             c.games = v;
             return c;
@@ -46,8 +48,9 @@ module.exports = {
       }, this);
       return resolver(Promise.all(promise_list));
     },
-    'challenge_winners': function(resolver, challenge_id) {
-      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC', challenge_id));
+    'challenge_winners': function(resolver, challenge_id, limit) {
+      limit = limit || -1;
+      resolver(this.dispatch('db_call', 'all', 'SELECT * FROM challenge_best_attempts WHERE challenge_id = ? ORDER BY score DESC LIMIT ?', challenge_id, limit));
     }
   }
 
