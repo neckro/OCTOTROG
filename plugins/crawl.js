@@ -527,6 +527,14 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    "???": {
+      no_space: true,
+      description: "Alias for !!readall.",
+      response: function(opt) {
+        opt.command = '!readall';
+        this.relay('Sequell', opt);
+      }
+    },
     "??": {
       no_space: true,
       description: "Look up or search for an entry in LearnDB",
