@@ -39,7 +39,7 @@ See `octotrog.js` for an example of instantiating a bot and loading plugins.
 Currently the bot only looks in the `plugins` subdirectory for plugin scripts.
 `options` is passed to the plugin's initializer.
 
-## plugin
+## plugin (core)
 
 Core plugin functionality.  An attempt (not entirely successful) has been made
 to allow plugins to function without directly accessing the `ircbot` object.
@@ -92,7 +92,7 @@ Same as `plugin.say`, except a stock bot phrase is used.
 
 Utility function to wrap a string in an IRC color.
 
-## `plugin (extensions)`
+## plugin (extensions)
 
 These should be defined in your plugin file.
 
