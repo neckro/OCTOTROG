@@ -56,7 +56,6 @@ extend(Bot.prototype, {
       options = options || {};
       var plugin_file = path.basename(name, '.js');
       var plugin_path = this.plugin_path + '/' + plugin_file;
-      require.resolve(plugin_path);
       // purge Node's require cache to force the file to be reloaded
       Object.keys(require.cache).forEach(function(c) {
         if (path.basename(c, '.js') === plugin_file) {
