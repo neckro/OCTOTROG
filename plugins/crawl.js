@@ -240,7 +240,11 @@ module.exports = {
   },
 
   relay: function(remote_bot, opt) {
-    return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    if (remote_bot == 'Sequell') {
+      return this.relay_client.say(remote_bot, ('!RELAY -n 1 -nick ' + opt.from + ' ' + opt.command + ' ' + opt.params.join(' ')).trim());
+    } else {
+      return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    }
   },
 
   relay_response: function(text, from) {
@@ -507,14 +511,16 @@ module.exports = {
 
   commands: {
     // Sequell
-    "!!": {
+    "!": {
       no_space: true,
-      description: "Pass an arbitrary command to Sequell: !!hs . OpBe",
+      description: "Pass an arbitrary command to Sequell: !hs . OpBe",
       response: function(opt) {
-        var i = opt.params.indexOf('.');
-        if (i > -1) opt.params[i] = opt.from;
+        //var i = opt.params.indexOf('.');
+        //if (i > -1) opt.params[i] = opt.from;
         opt.command = '!' + (opt.params.shift() || '');
-        this.relay('Sequell', opt);
+        if (!this.commands.hasOwnProperty(opt.command)) {
+          this.relay('Sequell', opt);
+        }
       }
     },
     "&&": {
