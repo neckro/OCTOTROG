@@ -240,7 +240,11 @@ module.exports = {
   },
 
   relay: function(remote_bot, opt) {
-    return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    if (remote_bot == 'Sequell') {
+      return this.relay_client.say(remote_bot, ('!RELAY -n 1 -nick ' + opt.from + ' ' + opt.command + ' ' + opt.params.join(' ')).trim());
+    } else {
+      return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    }
   },
 
   relay_response: function(text, from) {
