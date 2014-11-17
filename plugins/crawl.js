@@ -107,6 +107,7 @@ module.exports = {
         "19/20. [src=cszo;game_key=neckro23:cszo:20130912023426S;id=2613578;v=0.13.0] neckro23 the Ducker (L6 OpBe of Trog), slain by an orc wizard (a +3,+2 orcish dagger) on D:3 on 2013-10-12 03:54:15, with 510 points after 2206 turns and 0:09:07.",
         "5. neckro23 the Cleaver (L12 MiBe of Trog), demolished by a death yak on Lair:5 (minmay_swamp_entry_wisps) on 2013-05-14 07:46:42, with 20426 points after 15217 turns and 1:07:08.",
         "4. TheNoid the Slayer (L27 VpNe of Kikubaaqudgha), blasted by a smoke demon (divine providence) (kmap: evilmike_mini_pan_T) in Pandemonium on 2014-03-17 21:47:41, with 763206 points after 112223 turns and 10:51:26.",
+        "546. [piety=188] Kramin the Reanimator (L16 MuNe of Ashenzari), blasted by Kramin's illusion (dispel undead) (woven by Mara) on Spider:3 on 2014-11-10 00:05:49, with 115045 points after 40273 turns and 2:51:25.",
         "1. [id=3111623;v=0.15.0-a0] Runemage the Magician (L8 VSEn of Okawaru), succumbed to guido's ghost's poison on D:5 on 2014-04-08 21:54:18, with 1347 points after 7371 turns and 0:36:35."
       ]
     }, {
