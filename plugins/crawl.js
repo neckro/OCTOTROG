@@ -157,7 +157,7 @@ module.exports = {
         '(\\w+), XL(\\d\\d?) '          +// necKro23, XL6 
         '(\\w\\w)(\\w\\w), '            +// OpBe, 
         'T:(\\d+): '                    +// T:2206: 
-        '(http://.*)'                   +// http://dobrazupa.org/[...]
+        '(https?://.+)'                 +// http://dobrazupa.org/[...]
         '$',
       mapping:  {
         result_num: 1,
@@ -169,6 +169,7 @@ module.exports = {
         morgue: 8
       },
       tests: [
+        "1. Kramin, XL16 MuNe, T:40273: https://crawl.project357.org/morgue/Kramin/morgue-Kramin-20141110-000549.txt",
         "19/20. neckro23, XL6 OpBe, T:2206: http://dobrazupa.org/morgue/neckro23/morgue-neckro23-20131012-035415.txt"
       ]
     }, {
@@ -193,7 +194,7 @@ module.exports = {
       ]
     }, {
       event: 'player_webtiles',
-      regex: '^Watch (\\w+) at: (.+)$',
+      regex: '^Watch (\\w+) at: (https?://.+)$',
       mapping: {
         player: 1,
         webtiles: 2
