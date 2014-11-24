@@ -59,8 +59,8 @@ if (TESTMODE) {
     nick: 'TESTTROG'
   });
   extend(crawl_options, {
-    relay_nick: 'TESTTROG',
-    relay_server: 'irc.freenode.net'
+    //relay_channels: ['#octolog'],
+    relay_nick: 'TESTTROG'
   });
 }
 
@@ -81,10 +81,11 @@ var daemon = startStopDaemon({
   var secrets = {};
   try {
     secrets = require('./secrets.js');
-  } catch (e) {
     bot.load_plugin('crawl.twitter', {
       auth_tokens: secrets.twitter,
       test_mode: TESTMODE
     });
+  } catch (e) {
+    // Ignore error
   }
 });

@@ -49,6 +49,8 @@ module.exports = {
   cron_interval: 300 * 1000,
   // Minimum score required to tweet deaths
   tweet_score_min: 1000,
+  // Stop listening for a particular relay hash after this long
+  relay_timeout: 60 * 1000,
 
   // Colors
   milestone_color: '15,01',
@@ -217,15 +219,12 @@ module.exports = {
       options
     );
     this.log.bind_listeners(this.relay_client, 'irc');
+
+    // Pass IRC message events
     this.relay_client.addListener('message', function(nick, to, text, message) {
-      if (!this.relay_bots[nick]) return;
-      this.log.debug(
-        'IRC',
-        '<' + nick + '>',
-        text
-      );
-      this.emitP('crawl_event', text, nick, (to === this.relay_client.nick));
+      this.emitP('crawl_msg', nick, to, text, message);
     }.bind(this));
+
     this.relay_client.addListener('error', function(e) {
       this.log.error(e, 'Relay client error');
     }.bind(this));
@@ -242,10 +241,32 @@ module.exports = {
   },
 
   relay: function(remote_bot, opt) {
-    return this.relay_client.say(remote_bot, (opt.command + ' ' + opt.params.join(' ')).trim());
+    var query = (opt.command + ' ' + opt.params.join(' ')).trim();
+    // Use Sequell's !RELAY command if we can
+    if (remote_bot === 'Sequell') {
+      // Create a hash to match response to request
+      var out_hash = opt.from + '_' + this.generate_hash(4);
+      var relay_listener = function(resolver, in_hash, msg) {
+        if (in_hash !== out_hash) return;
+        opt.reply(false, msg);
+      };
+      this.addListener('relay_msg', relay_listener);
+      // Stop listening after a timeout
+      setTimeout(function() {
+        this.removeListener('relay_msg', relay_listener);
+      }.bind(this), this.relay_timeout);
+
+      query = sprintf(
+        '!RELAY -nick %s -prefix |%s| %s',
+        opt.from,
+        out_hash,
+        query
+      );
+    }
+    return this.relay_client.say(remote_bot, query);
   },
 
-  relay_response: function(text, from) {
+  relay_event: function(text, from) {
     var echo = text;
     var server = from && this.relay_bots[from] && this.relay_bots[from].code;
     if (typeof server === 'string') echo += ' [' + server + ']';
@@ -272,24 +293,45 @@ module.exports = {
     };
   },
 
-  listeners: {
-    'crawl_event': function(resolver, text, from, privmsg) {
-      // Recieved a message from a bot!  Do something about it.
-      var parsed = this.parse_message(this.parsers, text);
+  generate_hash: function(len) {
+    // This is very simple and there is absolutely no check for hash
+    // collisions, but in practice this is pretty unlikely.
+    len = len || 10;
+    var out = '';
+    var chars = '0123456789abcdef';
+    for (var i = 0; i < len; i++) {
+      out += chars[(Math.random() * chars.length) | 0];
+    }
+    return out;
+  },
 
-      if (parsed.event) {
-        extend(parsed.info, {
-          text: text,
-          from: from,
-          privmsg: privmsg
-        });
-        this.log.debug('Detected Crawl event:', parsed.event);
-        return resolver(this.emitP(parsed.event, parsed.info));
+  listeners: {
+    'crawl_msg': function(resolver, nick, to, text, message) {
+      // Ignore if msg wasn't from a Crawl bot
+      if (!this.relay_bots[nick]) return;
+
+      if (to === this.relay_nick) {
+        if (nick === 'Sequell') {
+          // Check for relay hash
+          var matches = text.match(/^\|(.+?)\|(.+)$/);
+          var hash = matches[1];
+          // Remove hash from text for further processing
+          text = matches[2];
+          this.emitP('relay_msg', hash, text);
+        } else {
+          // Relay all privmsgs from other bots
+          this.relay_event(text, nick);
+        }
       }
-      // No event to dispatch!
-      // Relay the text anyways if appropriate
-      if (privmsg) this.relay_response(text);
-      return resolver(Promise.reject('No event to dispatch!'));
+      var parsed = this.parse_message(this.parsers, text);
+      if (!parsed.event) return;
+
+      this.log.debug('Detected Crawl event:', parsed.event);
+      extend(parsed.info, {
+        text: text,
+        from: nick
+      });
+      return resolver(this.emitP(parsed.event, parsed.info));
     },
 
     'get_gameinfo': function(resolver, info, query, info_type) {
@@ -395,57 +437,36 @@ module.exports = {
     'player_death': function(resolver, info) {
       if (this.queueResolve('player_death', info)) return;
 
-      // Check watchlist
-      resolver(
-        Promise.all([
-          this.dispatch('check_watchlist', info.player),
-          this.dispatch('check_watchlist', info.ghost_killer)
-        ])
-        .bind(this)
-        .spread(function(watched, ghost) {
-          info.watched = watched;
-          // Relay death event to channel if appropriate
-          if (info.privmsg || watched || ghost) {
-            var color;
-            if (info.result_num === undefined) {
-              // Color new deaths/wins
-              color = this.death_color;
-              if (info.fate && info.fate.match(/^escaped/)) {
-                color = this.win_color;
-              }
-            }
-            this.relay_response(
-              this.color_wrap(info.text, color),
-              info.from
-            );
-          }
-          // Get extra info for relayed deaths
-          if (info.watched) {
-            var p = this.emitP('get_extra_info', info);
-            // If player is watched, log this death to db
-            p = p.then(function(v) {
-              return this.emitP('log_death', info);
-            });
-            // If new death and score is above threshold, tweet it
-            if (info.result_num === undefined && info.score > this.tweet_score_min) {
-              p = p.then(function(v) {
-                return this.dispatch('death_tweet', info);
-              });
-            }
-            return p;
-          }
-        })
-      );
-    },
+      // Check for both watched player deaths and ghost kills
+      var p = Promise.all([
+        this.dispatch('check_watchlist', info.player),
+        this.dispatch('check_watchlist', info.ghost_killer)
+      ]).bind(this);
 
-    'player_morgue': function(resolver, info) {
-      if (this.queueResolve('player_morgue', info)) return;
-      if (info.privmsg) this.say(false, info.text);
-    },
+      resolver(p.spread(function(watched, ghost) {
+        if (!watched && !ghost) return;
+        info.watched = watched;
+        // Log it in the DB
+        this.emitP('log_death', info);
+        // If this wasn't a fresh death, we're done here
+        if (info.result_num) return;
 
-    'player_webtiles': function(resolver, info) {
-      if (this.queueResolve('webtiles', info)) return;
-      if (info.privmsg) this.say(false, info.text);
+        // Echo to main channel
+        var color = this.death_color;
+        if (info.fate && info.fate.match(/^escaped/)) {
+          color = this.win_color;
+        }
+        this.relay_event(
+          this.color_wrap(info.text, color),
+          info.from
+        );
+
+        // If score is above threshold, tweet it (crawl.twitter plugin)
+        if (info.score > this.tweet_score_min) {
+          // Need to get morgue before this happens
+          //this.dispatch('death_tweet', info);
+        }
+      }));
     },
 
     'player_milestone': function(resolver, info) {
@@ -463,31 +484,39 @@ module.exports = {
         info.rune = match[2] || 'orb';
       }
 
-      resolver(
-        Promise.all([
-          this.dispatch('check_watchlist', info.player),
-          this.dispatch('check_watchlist', info.ghost_kill)
-        ])
-        .bind(this)
-        .spread(function(watched, ghost) {
-          if (info.privmsg || watched || ghost) {
-            // Only color new milestones
-            var color = info.result_num ? null : this.milestone_color;
-            this.relay_response(
-              this.color_wrap(info.text, color),
-              info.from
-            );
-          }
-          if (!info.privmsg && watched) {
-            if (info.rune) {
-              this.emitP('get_webtiles', info)
-              .then(function(info) {
-                this.dispatch('milestone_tweet', info);
-              });
-            }
-          }
-        })
-      );
+      var p = Promise.all([
+        this.dispatch('check_watchlist', info.player),
+        this.dispatch('check_watchlist', info.ghost_kill)
+      ]).bind(this);
+
+      resolver(p.spread(function(watched, ghost) {
+        if (!watched && !ghost) return;
+        // If this wasn't a fresh milestone, we're done here
+        if (info.result_num) return;
+
+        // Echo to main channel
+        var color = info.result_num ? null : this.milestone_color;
+        this.relay_event(
+          this.color_wrap(info.text, color),
+          info.from
+        );
+
+        // Send rune milestones to twitter plugin
+        if (info.rune) {
+          this.emitP('get_webtiles', info)
+          .then(function(info) {
+            this.dispatch('milestone_tweet', info);
+          });
+        }
+      }));
+    },
+
+    'player_morgue': function(resolver, info) {
+      if (this.queueResolve('player_morgue', info)) return;
+    },
+
+    'player_webtiles': function(resolver, info) {
+      if (this.queueResolve('webtiles', info)) return;
     },
 
     'cron_event': function(resolver) {
