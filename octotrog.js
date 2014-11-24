@@ -11,7 +11,7 @@ var bot_options = {
     error: '~/logs/errors.%D.log',
     debug: '~/logs/debug.%D.log'
   },
-  server: "irc.lunarnet.org",
+  server: "castleheck.tx.us.lunarnet.org",
   nick: "OCTOTROG",
   main_channel: '#octolog',
   irc: {
