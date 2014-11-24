@@ -62,7 +62,6 @@ if (TESTMODE) {
     relay_nick: 'TESTTROG',
     relay_server: 'irc.freenode.net'
   });
-  crawl_options.relay_channels = ['#octotest'];
 }
 
 // Start the daemon
