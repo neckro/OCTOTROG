@@ -653,6 +653,7 @@ module.exports = {
     "!lairratio": {
       description: "Shows how often a player reaches the Lair.",
       response: function(opt) {
+        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
