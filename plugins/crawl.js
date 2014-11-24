@@ -542,8 +542,6 @@ module.exports = {
       no_space: true,
       description: "Pass an arbitrary command to Sequell: !!hs . OpBe",
       response: function(opt) {
-        var i = opt.params.indexOf('.');
-        if (i > -1) opt.params[i] = opt.from;
         opt.command = '!' + (opt.params.shift() || '');
         this.relay('Sequell', opt);
       }
@@ -552,8 +550,6 @@ module.exports = {
       no_space: true,
       description: "Pass an arbitrary command to Sequell: &&rc . ",
       response: function(opt) {
-        var i = opt.params.indexOf('.');
-        if (i > -1) opt.params[i] = opt.from;
         opt.command = '&' + (opt.params.shift() || '');
         this.relay('Sequell', opt);
       }
@@ -603,7 +599,6 @@ module.exports = {
     "!chars": {
       description: "Lists the frequency of all character types a player started.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -616,77 +611,66 @@ module.exports = {
     "!gamesby": {
       description: "Summarizes a player's public server career.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!gkills": {
       description: "Lists the top kills for a player's ghost.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!greatplayer": {
       description: "Shows a player's unwon species.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!greaterplayer": {
       description: "Shows a player's unwon backgrounds.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!hs": {
       description: "Lists the highest-scoring game for a player.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!killratio": {
-      description: "Usage: !killratio <unique monster> <player>",
+      description: "Usage: !killratio <unique monster> (<player>)",
       response: function(opt) {
-        if (opt.params.length < 2) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!kw": {
       description: "Define keyword: `!kw <keyword> <definition>` to define, `!kw -rm <keyword>` to delete, `!kw <keyword>` to query, `!kw -ls` to list.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lairratio": {
       description: "Shows how often a player reaches the Lair.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lg": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !lg (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!listgame": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !listgame (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!lm": {
       description: "Lists milestones for the specified player. Usage: !lm (<player>) (<number>) (options) where options are in the form field=value, or (max|min)=field. See ??milestone for more info.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -707,7 +691,6 @@ module.exports = {
     "!log": {
       description: "Gives a URL to the user's last morgue file. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -726,7 +709,6 @@ module.exports = {
     "%rc": {
       description: "Gives a URL to the user's rc file.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -739,21 +721,18 @@ module.exports = {
     "!streak": {
       description: "Show's a player's winning streak (or lack thereof).",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!ttr": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
     "!ttyrec": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
@@ -766,7 +745,6 @@ module.exports = {
     "!won": {
       description: "Shows the number of games won. Usage: !won <nick> [<number of wins to skip>]",
       response: function(opt) {
-        if (opt.params.length === 0) opt.params.push(opt.from);
         this.relay('Sequell', opt);
       }
     },
