@@ -17,7 +17,7 @@ var dispatch_timeout = 30000;
 var defaults = {
   debug: true,
   plugin_path: '../plugins',
-  max_line_length: 400,
+  max_line_length: 430,
   irc: {
     channels: []
   }
