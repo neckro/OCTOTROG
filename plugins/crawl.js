@@ -245,16 +245,20 @@ module.exports = {
     // Use Sequell's !RELAY command if we can
     if (remote_bot === 'Sequell') {
       // Create a hash to match response to request
-      var out_hash = opt.from + '_' + this.generate_hash(4);
-      var relay_listener = function(resolver, in_hash, msg) {
-        if (in_hash !== out_hash) return;
-        opt.reply(false, msg);
-      };
-      this.addListener('relay_msg', relay_listener);
-      // Stop listening after a timeout
-      setTimeout(function() {
-        this.removeListener('relay_msg', relay_listener);
-      }.bind(this), this.relay_timeout);
+      var out_hash = (opt.from || this.relay_nick) + '_' + this.generate_hash(4);
+
+      // Set up relay listeners, if there's someone to relay it to
+      if (opt.from) {
+        var relay_listener = function(resolver, in_hash, msg) {
+          if (in_hash !== out_hash) return;
+          opt.reply(false, msg);
+        };
+        this.addListener('relay_msg', relay_listener);
+        // Stop listening after a timeout
+        setTimeout(function() {
+          this.removeListener('relay_msg', relay_listener);
+        }.bind(this), this.relay_timeout);
+      }
 
       query = sprintf(
         '!RELAY -nick %s -prefix |%s| %s',
