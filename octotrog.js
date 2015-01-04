@@ -59,7 +59,7 @@ if (TESTMODE) {
     nick: 'TESTTROG'
   });
   extend(crawl_options, {
-    //relay_channels: ['#octolog'],
+    relay_channels: ['#octolog'],
     relay_nick: 'TESTTROG'
   });
 }
