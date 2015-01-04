@@ -467,8 +467,12 @@ module.exports = {
 
         // If score is above threshold, tweet it (crawl.twitter plugin)
         if (info.score > this.tweet_score_min) {
+          this.emitP('get_extra_info', info)
+          .then(function(info) {
+            this.dispatch('death_tweet', info);
+          });
           // Need to get morgue before this happens
-          //this.dispatch('death_tweet', info);
+          
         }
       }));
     },
