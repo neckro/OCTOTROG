@@ -109,7 +109,6 @@ extend(Bot.prototype, {
       text = args.shift();
     }
     if (typeof text !== 'string') return;
-    var linepos = 0;
     if (args.length > 0) text = vsprintf(text, args);
     if (typeof transform === 'function') {
       text = this.say_transform(text);
