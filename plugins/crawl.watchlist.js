@@ -1,19 +1,11 @@
 "use strict";
+var foreach = require('foreach');
 
 module.exports = {
   name: "watchlist",
   prefix: "!",
   init: function() {
-    // Load watchlist
-    var watchlist = this.watchlist = {};
-
-    this.dispatch('db_call', 'all', 'SELECT player FROM watchlist')
-    .then(function(val) {
-      if (!Array.isArray(val)) return;
-      val.forEach(function(e) {
-        watchlist[e.player.toLowerCase()] = true;
-      });
-    });
+    this.emitP('get_watchlist');
   },
 
   commands: {
@@ -35,8 +27,9 @@ module.exports = {
             );
           }
         })
-        .catch(function() {
+        .catch(function(e) {
           opt.reply_phrase('database_error');
+          this.log.error(e);
         });
       }
     },
@@ -56,8 +49,9 @@ module.exports = {
             }));
           }
         })
-        .catch(function() {
+        .catch(function(e) {
           opt.reply_phrase('database_error');
+          this.log.error(e);
         });
       }
     },
@@ -66,52 +60,52 @@ module.exports = {
       response: function(opt) {
         this.emitP('get_watchlist')
         .then(function(w) {
-          var list = 'nobody';
-          if (w && w.length) {
-            list = w.sort().join(' ');
-          }
-          opt.reply_phrase('watched', list);
+          opt.reply_phrase('watched', w.join(' '));
         });
       }
     }
   },
 
   listeners: {
+    'get_watchlist': function(resolver) {
+      resolver(
+        this.dispatch('db_call', 'all', 'SELECT LOWER(player) AS player FROM watchlist ORDER BY LOWER(player)')
+        .then(function(val) {
+          var watchArray = [];
+          this.watchlist = {};
+          foreach(val, function(e) {
+            this.watchlist[e.player] = true;
+            watchArray.push(e.player);
+          }, this);
+          return watchArray;
+        })
+      );
+    },
+
     'check_watchlist': function(resolver, name, no_update) {
       if (typeof name !== 'string') return resolver(false);
       var player = name.toLowerCase();
       var watched = !!(this.watchlist[player]);
       if (watched && !no_update) {
-        this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE player = ?', player);
+        this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE LOWER(player) = ?', player);
       }
       resolver(watched);
     },
-    'get_watchlist': function(resolver) {
-      resolver(Object.keys(
-        (typeof this.watchlist === 'object') ? this.watchlist : {}
-      ));
-    },
+
     'modify_watchlist': function(resolver, nick, add) {
       var self = this;
-      if (!add && this.watchlist[nick]) {
-        resolver(
-          this.dispatch('db_run', 'DELETE FROM watchlist WHERE player = ?', nick)
-          .then(function() {
-            delete(self.watchlist[nick]);
-            return true;
-          })
-        );
-      } else if (add) {
-        resolver(
-          this.dispatch('db_run', 'INSERT INTO watchlist (player) VALUES (?)', nick)
-          .then(function() {
-            self.watchlist[nick] = true;
-            return true;
-          })
-        );
+      var query;
+      if (add) {
+        query = 'INSERT OR IGNORE INTO watchlist (player) VALUES (LOWER(?))';
       } else {
-        resolver(false);
+        query = 'DELETE FROM watchlist WHERE LOWER(player) = ?';
       }
+      return resolver(
+        this.dispatch('db_run', query, nick.toLowerCase())
+        .then(function() {
+          return this.emitP('get_watchlist');
+        })
+      );
     }
   }
 
