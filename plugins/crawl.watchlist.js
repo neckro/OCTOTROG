@@ -61,7 +61,7 @@ module.exports = {
         });
       }
     },
-    "watched": {
+    "watchlist": {
       description: "Show list of watched users.",
       response: function(opt) {
         this.emitP('get_watchlist')
