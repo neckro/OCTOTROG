@@ -14,14 +14,14 @@ var Plugin = module.exports = function(bot, plugin_obj, options) {
     debug: bot.debug
   });
 
-  this.log = bot.log.attach(this, '[' + (this.name || '???') + ']');
   events.EventEmitter.call(this);
+
+  this.log = bot.log.attach(this, '[' + (this.name || '???') + ']');
   this.create_command_map();
-  this.init();
-  var self = this;
   foreach(extend({}, Listeners, this.listeners), function(l, n) {
-    self.addListener(n, l);
-  });
+    this.addListener(n, l);
+  }, this);
+  this.init();
 };
 
 util.inherits(Plugin, events.EventEmitter);
