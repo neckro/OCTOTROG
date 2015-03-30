@@ -14,6 +14,11 @@ module.exports = {
     this.db.addListener('error', function(e) {
       this.log_error(e, 'Database error');
     });
+    if (this.debug) {
+      this.db.addListener('profile', function(sql, time) {
+        this.log.debug('Query complete (' + time, 'ms):', sql);
+      }.bind(this));
+    }
   },
 
   listeners: {
