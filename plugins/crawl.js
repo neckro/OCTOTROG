@@ -567,6 +567,8 @@ module.exports = {
       description: "Alias for !!readall.",
       response: function(opt) {
         opt.command = '!readall';
+        // omg
+        opt.params = [opt.params.join('_')];
         this.relay('Sequell', opt);
       }
     },
