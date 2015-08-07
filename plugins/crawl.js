@@ -771,6 +771,12 @@ module.exports = {
         this.relay('Sequell', opt);
       }
     },
+    ".echo": {
+      description: "Echos back the argument, possibly including command line expansions.  See https://github.com/crawl/sequell/blob/master/docs/commandline.md for documentation.",
+      response: function(opt) {
+        this.relay('Sequell', opt);
+      }
+    },
 
     // Henzell
     "!dump": {
