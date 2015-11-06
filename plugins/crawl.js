@@ -46,7 +46,7 @@ module.exports = {
   // Max number of times to retry game info request
   info_retry_limit: 6,
   // Interval between cron runs
-  cron_interval: 300 * 1000,
+  cron_interval: 0,
   // Minimum score required to tweet deaths
   tweet_score_min: 1000,
   // Stop listening for a particular relay hash after this long
@@ -229,9 +229,11 @@ module.exports = {
       this.log.error(e, 'Relay client error');
     }.bind(this));
 
-    this.cronTimer = setInterval(function() {
-      this.emitP('cron_event');
-    }.bind(this), this.cron_interval);
+    if (this.cron_interval) {
+      this.cronTimer = setInterval(function() {
+        this.emitP('cron_event');
+      }.bind(this), this.cron_interval);
+    }
   },
 
   destroy: function() {
