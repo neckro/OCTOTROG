@@ -1,8 +1,6 @@
 "use strict";
 var twitter = require('twitter');
-var express = require('express');
-var http = require('http');
-var sprintf = require('sprintf');
+var format = require('util').format;
 
 module.exports = {
   name: 'twitter',
@@ -15,23 +13,23 @@ module.exports = {
   },
 
   listeners: {
-    'tweet': function(resolver, msg) {
-      if (!msg) return;
+    'tweet': function(evt, message) {
+      if (!message) return;
       if (this.test_mode) {
-        this.log.debug("Pretend I'm Tweeting:", msg);
-        resolver(true);
+        this.dispatch('log:debug', "Pretend I'm Tweeting:", message);
+        evt.resolve(true);
       } else {
-        this.log.debug("Actually Tweeting:", msg);
-        this.twitter.updateStatus(msg, function(response) {
-          resolver(response);
+        this.dispatch('log:debug', "Actually Tweeting:", message);
+        this.twitter.updateStatus(message, function(response) {
+          evt.resolve(response);
         });
       }
     },
-    'death_tweet': function(resolver, info) {
-      resolver(this.emitP('tweet', this.death_tweet_text(info)));
+    'tweet:death': function(evt, info) {
+      evt.resolve(this.emitP('tweet', this.death_tweet_text(info)));
     },
-    'milestone_tweet': function(resolver, info) {
-      resolver(this.emitP('tweet', this.milestone_tweet_text(info)));
+    'tweet:milestone': function(evt, info) {
+      evt.resolve(this.emitP('tweet', this.milestone_tweet_text(info)));
     }
   },
 
@@ -51,16 +49,16 @@ module.exports = {
   death_tweet_text: function(info) {
     return this.split_tweet(
       [
-        sprintf(
+        format(
           '%s (L%s %s), %s',
           info.player,
           info.xl,
           info.race + info.class,
           info.fate.replace(/ \(.+\)/, '')
         ),
-        info.preposition ? sprintf(' %s %s', info.preposition, info.place) : '',
-        sprintf(' with %s points', info.score),
-        sprintf(' after %s turns', info.turns)
+        info.preposition ? format(' %s %s', info.preposition, info.place) : '',
+        format(' with %s points', info.score),
+        format(' after %s turns', info.turns)
       ], 118) + ': ' + info.morgue;
   },
 

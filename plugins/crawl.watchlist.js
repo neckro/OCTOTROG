@@ -1,5 +1,5 @@
 "use strict";
-var foreach = require('foreach');
+var _ = require('lodash');
 
 module.exports = {
   name: "watchlist",
@@ -11,69 +11,69 @@ module.exports = {
   commands: {
     "addwatch": {
       description: "Watch a user. (Crawl name, NOT IRC nick!)",
-      response: function(opt) {
-        var nick = opt.params.shift();
+      response: function(evt, msg) {
+        var nick = msg.params.shift();
         var self = this;
         this.emitP('check_watchlist', nick)
         .then(function(val) {
           if (val) {
-            opt.reply_phrase('watched_already', nick);
+            msg.reply_phrase('watched_already', nick);
           } else {
             return (
               self.emitP('modify_watchlist', nick, true)
               .then(function() {
-                opt.reply_phrase('watch_added', nick);
+                msg.reply_phrase('watch_added', nick);
               })
             );
           }
         })
         .catch(function(e) {
-          opt.reply_phrase('database_error');
-          this.log.error(e);
+          msg.reply_phrase('database_error');
+          this.dispatch('log:error', e);
         });
       }
     },
     "unwatch": {
       description: "Unwatch a user. (Crawl name, NOT IRC nick!)",
-      response: function(opt) {
-        var nick = opt.params.shift();
+      response: function(msg) {
+        var nick = msg.params.shift();
         var self = this;
         self.emitP('check_watchlist', nick)
         .then(function(val) {
           if (!val) {
-            opt.reply_phrase('unwatched_already', nick);
+            msg.reply('FOOLISH WEAKLING!  I WAS ALREADY WATCHING %s.', nick);
           } else {
             return (self.emitP('modify_watchlist', nick, false)
             .then(function() {
-              opt.reply_phrase('watch_removed', nick);
+              msg.reply('I HAVE LET %s WANDER FROM MY GAZE.  PRAISE BE TO TROG.', nick);
             }));
           }
         })
         .catch(function(e) {
-          opt.reply_phrase('database_error');
-          this.log.error(e);
+          msg.reply('TROG HAVE PROBLEM WITH READ AND WRITE.');
+          this.dispatch('log:error', e);
         });
       }
     },
     "watchlist": {
       description: "Show list of watched users.",
-      response: function(opt) {
+      response: function(evt, msg) {
         this.emitP('get_watchlist')
         .then(function(w) {
-          opt.reply_phrase('watched', w.join(' '));
+          msg.reply('I AM WATCHING: %s.  PRAISE BE TO TROG.', w.join(' '));
         });
       }
     }
   },
 
   listeners: {
-    'get_watchlist': function(resolver) {
-      resolver(
-        this.dispatch('db_call', 'all', 'SELECT LOWER(player) AS player FROM watchlist ORDER BY LOWER(player)')
+    'get_watchlist': function(evt) {
+      evt.resolve(
+        this.dispatch('db:call', 'all', 'SELECT LOWER(player) AS player FROM watchlist ORDER BY LOWER(player)')
         .then(function(val) {
           var watchArray = [];
           this.watchlist = {};
-          foreach(val, function(e) {
+          _.forEach(val, function(e) {
             this.watchlist[e.player] = true;
             watchArray.push(e.player);
           }, this);
@@ -82,26 +82,25 @@ module.exports = {
       );
     },
 
-    'check_watchlist': function(resolver, name, no_update) {
-      if (typeof name !== 'string') return resolver(false);
+    'check_watchlist': function(evt, name, no_update) {
+      if (typeof name !== 'string') return evt.resolve(false);
       var player = name.toLowerCase();
       var watched = !!(this.watchlist[player]);
       if (watched && !no_update) {
-        this.dispatch('db_run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE LOWER(player) = ?', player);
+        this.dispatch('db:run', 'UPDATE watchlist SET last_seen = DATETIME("NOW") WHERE LOWER(player) = ?', player);
       }
-      resolver(watched);
+      evt.resolve(watched);
     },
 
-    'modify_watchlist': function(resolver, nick, add) {
-      var self = this;
+    'modify_watchlist': function(evt, nick, add) {
       var query;
       if (add) {
         query = 'INSERT OR IGNORE INTO watchlist (player) VALUES (LOWER(?))';
       } else {
         query = 'DELETE FROM watchlist WHERE LOWER(player) = ?';
       }
-      return resolver(
-        this.dispatch('db_run', query, nick.toLowerCase())
+      return evt.resolve(
+        this.dispatch('db:run', query, nick.toLowerCase())
         .then(function() {
           return this.emitP('get_watchlist');
         })

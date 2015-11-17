@@ -1,5 +1,5 @@
 "use strict";
-var foreach = require('foreach');
+var _ = require('lodash');
 
 module.exports = {
   name: "crawl-challenges",
@@ -13,7 +13,7 @@ module.exports = {
       response: function(opt) {
         this.dispatch('challenges_current_summary')
         .then(function(challenges) {
-          foreach(challenges, function(c) {
+          _.forEach(challenges, function(c) {
             opt.reply(
               'challenge is: %s%s. current leader: %s with %u points. challenge ends in: %s hours.',
               c.race, c.class, c.player, c.score, c.hours_left

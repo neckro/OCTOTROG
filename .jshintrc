@@ -1,4 +1,5 @@
 {
 	"node": true,
-	"predef": [ "-Promise" ]
+	"predef": [ "-Promise" ],
+	"unused": true
 }

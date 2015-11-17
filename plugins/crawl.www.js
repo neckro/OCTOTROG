@@ -1,9 +1,8 @@
 "use strict";
-var foreach = require('foreach');
-var express = require('express');
-var engines = require('consolidate');
 var http = require('http');
+var express = require('express');
 var Promise = require('bluebird');
+var engines = require('consolidate');
 
 module.exports = {
   name: 'crawl-www',
