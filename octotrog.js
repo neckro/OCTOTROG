@@ -29,10 +29,10 @@ OCTOTROG
 .load('crawl.challenges')
 .load('crawl.watchlist')
 .load('crawl', {
-  relay_nick: 'TESTTROG',
+  relay_nick: 'OCTOTROG',
   relay_server: 'irc.freenode.net',
   relay_from: ['##crawl', '#octolog'],
-  relay_to: ['#octotest'],
+  relay_to: ['#octolog'],
   irc: {
     userName: 'octotrog',
     realName: 'KILL THEM ALL!',
