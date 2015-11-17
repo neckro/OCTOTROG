@@ -46,10 +46,10 @@ OCTOTROG
 ;
 
 try {
-  // var secrets = require('./secrets.js');
-  // OCTOTROG.load('crawl.twitter', {
-  //   auth_tokens: secrets.twitter
-  // });
+  var secrets = require('./secrets.js');
+  OCTOTROG.load('crawl.twitter', {
+    auth_tokens: secrets.twitter
+  });
 } catch (e) {
   // Don't load this plugin if there was an error finding the secrets file
 }
