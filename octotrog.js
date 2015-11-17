@@ -16,12 +16,12 @@ OCTOTROG
 .load('main')
 .load('database')
 .load('irc', {
-  nick: 'TESTTROG',
+  nick: 'OCTOTROG',
   nick_alt: 'OCTOTROG_',
   userName: 'OCTOTROG',
   realName: 'KILL THEM ALL!',
   port: 6667,
-  channels: ['#octotest'],
+  channels: ['#octolog'],
   server: 'castleheck.tx.us.lunarnet.org'
 })
 .load('dictionary')
