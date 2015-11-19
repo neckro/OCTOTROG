@@ -6,7 +6,7 @@ module.exports = {
   name: 'twitter',
 
   init: function() {
-    this.twitter = new twitter(this.auth_tokens);
+    this.twitter = new twitter(this.config.auth_tokens);
   },
 
   destroy: function() {
@@ -20,9 +20,11 @@ module.exports = {
         evt.resolve(true);
       } else {
         this.dispatch('log:debug', "Actually Tweeting:", message);
-        this.twitter.updateStatus(message, function(response) {
+        this.twitter.post('statuses/update', { status: message }, function(err, tweet, response) {
+          this.dispatch('log:debug', 'Tweet response:', response);
+          if (err) this.dispatch('log:error', err);
           evt.resolve(response);
-        });
+        }.bind(this));
       }
     },
     'tweet:death': function(evt, info) {

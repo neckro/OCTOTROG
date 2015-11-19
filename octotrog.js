@@ -2,6 +2,7 @@
 "use strict";
 
 var Octobot = require('octobot');
+var secrets = require('./secrets.js');
 var OCTOTROG = new Octobot();
 
 OCTOTROG
@@ -42,16 +43,8 @@ OCTOTROG
   }
 })
 .load('crawl.www')
-.load('crawl.twitter')
-;
+.load('crawl.twitter', {
+  auth_tokens: secrets.twitter
+})
+.start();
 
-try {
-  var secrets = require('./secrets.js');
-  OCTOTROG.load('crawl.twitter', {
-    auth_tokens: secrets.twitter
-  });
-} catch (e) {
-  // Don't load this plugin if there was an error finding the secrets file
-}
-
-OCTOTROG.start();
