@@ -24,9 +24,9 @@ module.exports = {
     // Bypass the watchlist (for testing)
     watchlist_bypass: false,
     // Colors
-    milestone_color: '{cyan}',
-    win_color: '{yellow}',
-    death_color: '{light_red}',
+    milestone_color: '{cyan,black}',
+    win_color: '{yellow,black}',
+    death_color: '{light_red,black}',
 
     // Listen for these nicks
     relay_bots: {
