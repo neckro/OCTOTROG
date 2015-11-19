@@ -27,6 +27,7 @@ module.exports = {
     milestone_color: '{cyan,black}',
     win_color: '{yellow,black}',
     death_color: '{light_red,black}',
+    ghost_kill_color: '{light_magenta,black}',
 
     // Listen for these nicks
     relay_bots: {
@@ -465,9 +466,13 @@ module.exports = {
         if (info.result_num) return;
 
         // Echo to main channel
-        var color = this.config.death_color;
+        var color = '';
         if (info.fate && info.fate.match(/^escaped/)) {
           color = this.config.win_color;
+        } else if (watched) {
+          color = this.config.death_color;
+        } else if (ghost) {
+          color = this.config.ghost_kill_color;
         }
         this.relay_event(color + info.text, info.from);
 
