@@ -270,6 +270,7 @@ module.exports = {
         query
       );
     }
+    this.dispatch('log:debug', 'Relaying to ' + remote_bot + ':', query);
     return this.relay_client.say(remote_bot, query);
   },
 
@@ -324,6 +325,7 @@ module.exports = {
       if (!this.config.relay_bots[nick]) return;
 
       if (to === this.relay_nick) {
+        this.dispatch('log:debug', '<' + nick + '>', text);
         if (nick === 'Sequell') {
           // Check for relay hash
           var matches = text.match(/^\|(.+?)\|(.+)$/);
