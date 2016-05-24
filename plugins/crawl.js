@@ -47,6 +47,10 @@ module.exports = {
         code: 'cszo',
         watch: '%watch'
       },
+      'Jorgrell': {
+        code: 'cjr',
+        watch: '=watch'
+      },
       'Lantell': {
         code: 'clan',
         watch: '$watch'
@@ -913,6 +917,43 @@ module.exports = {
       response: function(evt, msg) {
         if (msg.params.length === 0) msg.params.push(msg.from);
         this.relay('Sizzell', msg);
+      }
+    },
+
+    // Jorgrell
+    "=whereis": {
+      description: "Lists where a player currently is in the dungeon. (crawl.jorgrun.rocks)",
+      response: function(evt, msg) {
+        if (msg.params.length === 0) msg.params.push(msg.from);
+        this.relay('Jorgrell', msg);
+      }
+    },
+    "=dump": {
+      description: "Gives an URL to the specified user's last character dump. (crawl.jorgrun.rocks)",
+      response: function(evt, msg) {
+        if (msg.params.length === 0) msg.params.push(msg.from);
+        this.relay('Jorgrell', msg);
+      }
+    },
+    "=players": {
+      description: "Lists all players currently playing on CJR. (crawl.jorgrun.rocks)",
+      response: function(evt, msg) {
+        if (msg.params.length === 0) msg.params.push(msg.from);
+        this.relay('Jorgrell', msg);
+      }
+    },
+    "=version": {
+      description: "List all game versions currently being hosted on CJR. (crawl.jorgrun.rocks)",
+      response: function(evt, msg) {
+        if (msg.params.length === 0) msg.params.push(msg.from);
+        this.relay('Jorgrell', msg);
+      }
+    },
+    "=watch": {
+      description: "Display webtiles URL for user on CJR. (crawl.jorgrun.rocks)",
+      response: function(evt, msg) {
+        if (msg.params.length === 0) msg.params.push(msg.from);
+        this.relay('Jorgrell', msg);
       }
     },
 
