@@ -17,18 +17,18 @@ module.exports = {
         this.emitP('check_watchlist', nick)
         .then(function(val) {
           if (val) {
-            msg.reply_phrase('watched_already', nick);
+            msg.reply('FOOLISH WEAKLING!  I WAS ALREADY WATCHING %s.', nick.toUpperCase());
           } else {
             return (
               self.emitP('modify_watchlist', nick, true)
               .then(function() {
-                msg.reply_phrase('watch_added', nick);
+                msg.reply('I AM NOW WATCHING %s.  PRAISE BE TO TROG.', nick.toUpperCase());
               })
             );
           }
         })
         .catch(function(e) {
-          msg.reply_phrase('database_error');
+          msg.reply('TROG HAVE PROBLEM WITH READ AND WRITE.');
           this.dispatch('log:error', e);
         });
       }
@@ -41,11 +41,11 @@ module.exports = {
         self.emitP('check_watchlist', nick)
         .then(function(val) {
           if (!val) {
-            msg.reply('FOOLISH WEAKLING!  I WAS ALREADY WATCHING %s.', nick);
+            msg.reply('FOOLISH WEAKLING!  I WAS ALREADY WATCHING %s.', nick.toUpperCase());
           } else {
             return (self.emitP('modify_watchlist', nick, false)
             .then(function() {
-              msg.reply('I HAVE LET %s WANDER FROM MY GAZE.  PRAISE BE TO TROG.', nick);
+              msg.reply('I HAVE LET %s WANDER FROM MY GAZE.  PRAISE BE TO TROG.', nick.toUpperCase());
             }));
           }
         })
