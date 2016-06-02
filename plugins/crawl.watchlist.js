@@ -35,13 +35,13 @@ module.exports = {
     },
     "unwatch": {
       description: "Unwatch a user. (Crawl name, NOT IRC nick!)",
-      response: function(msg) {
+      response: function(evt, msg) {
         var nick = msg.params.shift();
         var self = this;
         self.emitP('check_watchlist', nick)
         .then(function(val) {
           if (!val) {
-            msg.reply('FOOLISH WEAKLING!  I WAS ALREADY WATCHING %s.', nick.toUpperCase());
+            msg.reply('FOOLISH WEAKLING!  I WAS NOT WATCHING %s.', nick.toUpperCase());
           } else {
             return (self.emitP('modify_watchlist', nick, false)
             .then(function() {
