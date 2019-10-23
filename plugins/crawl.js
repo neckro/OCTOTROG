@@ -35,7 +35,12 @@ module.exports = {
         watch: '^watch'
       },
       'Sequell': {},
+      'Postquell': {},
       'Cheibriados' : {},
+      'Eksell': {
+        code: 'cxc',
+        watch: '|watch'
+      },
       'Henzell': {
         code: 'cao',
         watch: '!watch'
@@ -134,6 +139,7 @@ module.exports = {
         '(.*?)'                               +// killed Grinder
         '( on turn (\\d+))?[.!]? '            +// on turn 2190.
         '\\((\\w+(:\\d+)?( \\(Sprint\\))?)\\)'+// (D:3)
+        '( \\[.*?\\])?'                       +// [CBRO 0.22.0]
         '$',
       mapping: {
         result_num: 2,
@@ -216,16 +222,36 @@ module.exports = {
   ],
 
   init: function() {
-    var irc_options = _.extend(this.config.irc || {}, {
-      channels: this.config.relay_from
-    });
+    var irc_options = _.omit(this.config.irc || {}, ['channels']);
+    var channels = this.channels = this.config.relay_from || this.config.irc.channels;
+
     this.relay_nick = this.config.relay_nick;
     this.relay_server = this.config.relay_server;
-    this.relay_client = new irc.Client(
+    var relay_client = this.relay_client = new irc.Client(
       this.relay_server,
       this.relay_nick,
-      irc_options
+      this.config.irc
     );
+    var self = this;
+
+    relay_client.addListener('registered', function(nick, to, text, message) {
+      try {
+        var secrets = require('../secrets');
+        var password = secrets['password_freenet'];
+        relay_client.say('NickServ', 'IDENTIFY ' + password);
+      } catch(e) {
+        // Forget it
+      }
+      // Wait to identify and then join channels
+      setTimeout(function() {
+        _.forEach(channels, function(channel) {
+          setTimeout(function() {
+            self.dispatch('log:debug', 'Joining relay channel:', channel);
+            relay_client.join(channel);
+          }, 1000);
+        });
+      }, 5000);
+    });
 
     // Pass IRC message events
     this.relay_client.addListener('message', function(nick, to, text, message) {
