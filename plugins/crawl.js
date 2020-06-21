@@ -35,6 +35,7 @@ module.exports = {
         watch: '^watch'
       },
       'Sequell': {},
+      'NotSequell': {},
       'Postquell': {},
       'Cheibriados' : {},
       'Eksell': {
