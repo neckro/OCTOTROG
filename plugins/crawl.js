@@ -591,7 +591,7 @@ module.exports = {
       description: "Pass an arbitrary command to Sequell: !!hs . OpBe",
       response: function(evt, msg) {
         msg.command = '!' + (msg.params.shift() || '');
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "&&": {
@@ -599,7 +599,7 @@ module.exports = {
       description: "Pass an arbitrary command to Sequell: &&rc . ",
       response: function(evt, msg) {
         msg.command = '&' + (msg.params.shift() || '');
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "???": {
@@ -609,120 +609,120 @@ module.exports = {
         msg.command = '!readall';
         // omg
         msg.params = [msg.params.join('_')];
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "??": {
       no_space: true,
       description: "Look up or search for an entry in LearnDB",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "r??": {
       no_space: true,
       description: "Return random entry in LearnDB.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "?/": {
       no_space: true,
       description: "Search for an entry in LearnDB.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!abyss": {
       description: "Use with caution.",
       response: function(evt, msg) {
         if (msg.params.length === 0) msg.params.push(msg.from);
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!apt": {
       description: "Looks up aptitudes for specified race/skill combination.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!chars": {
       description: "Lists the frequency of all character types a player started.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!ftw": {
       description: "Abbreviates race/role abbreviations. Example usage: !ftw Troll Berserker",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!gamesby": {
       description: "Summarizes a player's public server career.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!gkills": {
       description: "Lists the top kills for a player's ghost.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!greatplayer": {
       description: "Shows a player's unwon species.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!greaterplayer": {
       description: "Shows a player's unwon backgrounds.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!hs": {
       description: "Lists the highest-scoring game for a player.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!killratio": {
       description: "Usage: !killratio <unique monster> (<player>)",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!kw": {
       description: "Define keyword: `!kw <keyword> <definition>` to define, `!kw -rm <keyword>` to delete, `!kw <keyword>` to query, `!kw -ls` to list.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!lairratio": {
       description: "Shows how often a player reaches the Lair.",
       response: function(evt, msg) {
         if (msg.params.length === 0) msg.params.push(msg.from);
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!lg": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !lg (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!listgame": {
       description: "Lists games matching specified conditions. By default it lists the most recent game played by the invoker. Usage: !listgame (<player>) (<gamenumber>) (options) where options are in the form field=value, or (max|min)=field. See ??listgame or http://is.gd/sequell_lg for more info.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!lm": {
       description: "Lists milestones for the specified player. Usage: !lm (<player>) (<number>) (options) where options are in the form field=value, or (max|min)=field. See ??milestone for more info.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!locateall": {
@@ -732,83 +732,83 @@ module.exports = {
         if (msg.params.length === 0) {
           this.dispatch('get_watchlist', function(watchlist) {
             msg.params.push(watchlist.join('|'));
-            self.relay('Sequell', msg);
+            self.relay('NotSequell', msg);
           });
         } else {
-          self.relay('Sequell', msg);
+          self.relay('NotSequell', msg);
         }
       }
     },
     "!log": {
       description: "Gives a URL to the user's last morgue file. Accepts !listgame style selectors.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!mfcwc": {
       description: "New Sequell command to perform: !hs @mfc mfcwc | !nick mfc <nicks> | !kw mfcwc OpBe rstart>=201400270900 rend<=201401030900 | remember rstart/rend is in GMT",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!nchoice": {
       description: "Shows Nemelex's Choice.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "%rc": {
       description: "Gives a URL to the user's rc file.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!rng": {
       description: "Chooses randomly between its (space-separated) arguments. Accepts @god, @char, @role, and @race special arguments. Prefixing the special argument with 'good' or 'bad' limits the choices to only unrestricted or only restricted combos, respectively. @role=<role> or @race=<race> chooses a random combo with the specified role/race.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!streak": {
       description: "Show's a player's winning streak (or lack thereof).",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!ttr": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!ttyrec": {
       description: "Supplies URLs to the user's last ttyrecs. Accepts !listgame style selectors.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!tv": {
       description: "Usage: !tv <game>. Plays the game on FooTV.",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!won": {
       description: "Shows the number of games won. Usage: !won <nick> [<number of wins to skip>]",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!wtf": {
       description: "Expands race/role abbreviations. Example usage: !wtf TrBe",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     "!time": {
       description: "Shows the time until the tournament starts or ends",
       response: function(evt, msg) {
-        this.relay('Sequell', msg);
+        this.relay('NotSequell', msg);
       }
     },
     ".echo": {
