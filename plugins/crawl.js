@@ -66,6 +66,12 @@ module.exports = {
       },
       'Rotatelljr': {
         code: 'cbro+'
+      },
+      'Cbrotell': {
+        code: 'cbr2'
+      },
+      'Cbrotelljr': {
+        code: 'cbr2+'
       }
     }
   },
