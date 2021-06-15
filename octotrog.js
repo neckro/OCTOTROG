@@ -31,8 +31,8 @@ OCTOTROG
 .load('crawl.watchlist')
 .load('crawl', {
   relay_nick: 'OCTOTROG',
-  relay_server: 'irc.freenode.net',
-  relay_from: ['##crawl', '#octolog'],
+  relay_server: 'irc.libera.chat',
+  relay_from: ['##crawl', '#crawl-octolog'],
   relay_to: ['#octolog'],
   irc: {
     userName: 'octotrog',

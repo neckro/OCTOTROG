@@ -243,7 +243,7 @@ module.exports = {
     relay_client.addListener('registered', function(nick, to, text, message) {
       try {
         var secrets = require('../secrets');
-        var password = secrets['password_freenet'];
+        var password = secrets['password_libera'];
         relay_client.say('NickServ', 'IDENTIFY ' + password);
       } catch(e) {
         // Forget it
